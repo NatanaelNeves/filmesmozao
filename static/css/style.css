@@ -1,0 +1,590 @@
+/* static/css/style.css */
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary-color: #ff6f61; /* Cor rosa/vermelha para romance */
+    --secondary-color: #f7a9a8; /* Um rosa mais claro */
+    --background-color: #fce4ec; /* Um rosa bebê bem clarinho */
+    --text-color: #333;
+    --card-background: #ffffff;
+    --border-color: #ffb6c1; /* Rosa claro para bordas */
+    --success-color: #4CAF50;
+    --danger-color: #f44336;
+    --info-color: #2196F3;
+    --warning-color: #ff9800;
+}
+
+body {
+    font-family: 'Quicksand', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    overflow-x: hidden; /* Evita scroll horizontal indesejado */
+}
+
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* --- Header --- */
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Para responsividade */
+}
+
+header h1 {
+    font-family: 'Pacifico', cursive;
+    margin: 0;
+    font-size: 2.5em;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+header nav span {
+    margin-right: 15px;
+    font-weight: 500;
+}
+
+.button-logout {
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.button-logout:hover {
+    background-color: #e07b7b;
+}
+
+/* --- Forms (Adicionar Filme / Login) --- */
+.add-movie-section, .login-container {
+    background-color: var(--card-background);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+    border: 1px solid var(--border-color);
+}
+
+.login-container {
+    margin-top: 50px;
+    text-align: center;
+}
+
+.login-container h1 {
+    font-family: 'Pacifico', cursive;
+    color: var(--primary-color);
+    font-size: 2.8em;
+    margin-bottom: 10px;
+}
+
+.login-container p {
+    font-size: 1.1em;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+h2 {
+    color: var(--primary-color);
+    font-family: 'Pacifico', cursive;
+    font-size: 2em;
+    margin-top: 0;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+h3 {
+    color: var(--primary-color);
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1.5em;
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group input[type="password"],
+.form-group textarea,
+.form-group select {
+    width: calc(100% - 20px);
+    padding: 12px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1em;
+    font-family: 'Quicksand', sans-serif;
+    color: var(--text-color);
+    background-color: #fffafb;
+    box-sizing: border-box; /* Garante que padding e border não aumentem a largura */
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.button-submit, .button-filter {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.button-submit:hover, .button-filter:hover {
+    background-color: #e65c50;
+    transform: translateY(-2px);
+}
+
+.button-clear-filter {
+    background-color: #9e9e9e; /* Uma cor neutra para o botão de limpar */
+}
+
+.button-clear-filter:hover {
+    background-color: #757575;
+}
+
+/* --- Mensagens Flash --- */
+.flashes {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.flashes li {
+    padding: 12px 20px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    font-weight: 500;
+    color: white;
+}
+
+.flashes .success {
+    background-color: var(--success-color);
+}
+
+.flashes .danger {
+    background-color: var(--danger-color);
+}
+
+.flashes .info {
+    background-color: var(--info-color);
+}
+
+.flashes .warning {
+    background-color: var(--warning-color);
+}
+
+/* --- Lista de Filmes --- */
+.movie-list-section {
+    background-color: var(--card-background);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    border: 1px solid var(--border-color);
+}
+
+.filter-sort-bar {
+    display: flex;
+    flex-wrap: wrap; /* Permite quebrar linha em telas menores */
+    gap: 15px;
+    margin-bottom: 30px;
+    padding: 15px;
+    background-color: #fff0f5; /* Rosa mais clarinho para a barra de filtro */
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    align-items: center;
+}
+
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%; /* Ocupa toda a largura da barra */
+    align-items: flex-end; /* Alinha os elementos pela base */
+}
+
+.filter-group {
+    flex: 1; /* Faz os grupos de filtro crescerem */
+    min-width: 120px; /* Garante que não fiquem muito pequenos */
+}
+
+.filter-form label {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 5px; /* Espaço entre label e input/select */
+    display: block; /* Para a label ocupar sua própria linha */
+}
+
+.filter-form select, .filter-form input[type="text"] {
+    width: 100%; /* Preenche o espaço disponível no grupo */
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 0.95em;
+}
+
+.button-filter {
+    flex-shrink: 0; /* Impede que o botão encolha */
+    width: auto; /* Ajusta a largura ao conteúdo */
+    margin-top: 0;
+    padding: 8px 15px;
+    font-size: 1em;
+}
+
+
+.movie-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.movie-card {
+    background-color: #fff8f8; /* Um branco levemente rosado */
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border: 1px solid var(--secondary-color);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centraliza o conteúdo dentro do card */
+    text-align: center;
+}
+
+.movie-card:hover {
+    transform: translateY(-5px);
+}
+
+.movie-card h3 {
+    color: var(--primary-color);
+    font-family: 'Pacifico', cursive;
+    font-size: 1.8em;
+    margin-top: 15px; /* Espaço após o pôster */
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.movie-card p {
+    margin-bottom: 8px;
+    font-size: 0.95em;
+    text-align: center; /* Centraliza o texto no card */
+}
+
+.movie-card p strong {
+    color: var(--primary-color);
+}
+
+.movie-card .watched-by {
+    font-size: 0.85em;
+    color: #888;
+    margin-top: 15px;
+    text-align: right;
+    width: 100%; /* Garante que "Registrado por" se alinhe à direita */
+    padding-right: 10px;
+    box-sizing: border-box;
+}
+
+/* --- Estilos para os botões de ação (Editar/Deletar) dentro do card do filme --- */
+.movie-card .actions {
+    display: flex; /* Para alinhar os botões lado a lado */
+    justify-content: center; /* Centraliza os botões horizontalmente */
+    gap: 10px; /* Espaço entre os botões */
+    margin-top: 15px; /* Adiciona um pouco de espaço acima dos botões */
+    width: 100%; /* Ocupa toda a largura para centralizar */
+    padding: 0 10px; /* Padding para não encostar nas bordas */
+    box-sizing: border-box;
+}
+
+.button-action-card {
+    background-color: var(--secondary-color); /* Usando sua variável para um rosa claro */
+    color: white;
+    border: none;
+    padding: 8px 15px; /* Tamanho adequado para botões dentro do card */
+    border-radius: 8px; /* Mantendo seu border-radius padrão */
+    cursor: pointer;
+    font-size: 0.9em; /* Tamanho de fonte menor para ação */
+    text-decoration: none; /* Remover sublinhado de links */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: inline-flex; /* Para alinhar ícone e texto */
+    align-items: center; /* Alinha verticalmente ícone e texto */
+    justify-content: center; /* Alinha horizontalmente ícone e texto */
+    gap: 5px; /* Pequeno espaço entre ícone e texto */
+    min-width: 90px; /* Garante uma largura mínima para ambos os botões */
+    box-sizing: border-box; /* Inclui padding e borda na largura total */
+    flex-grow: 1; /* Permite que os botões cresçam para preencher o espaço disponível */
+}
+
+.button-action-card:hover {
+    background-color: #e07b7b; /* Um hover mais escuro para o rosa claro */
+    transform: translateY(-2px);
+}
+
+.button-action-card:active {
+    transform: translateY(0);
+}
+
+/* Estilo específico para o botão de deletar (se precisar de uma cor diferente) */
+.button-delete-card {
+    background-color: var(--danger-color); /* Usando sua variável para a cor de perigo */
+}
+
+.button-delete-card:hover {
+    background-color: #c9302c; /* Hover mais escuro para o botão de deletar */
+}
+
+/* Ajuste para o ícone Font Awesome */
+.button-action-card .fas,
+.button-action-card .far,
+.button-action-card .fab {
+    margin-right: 5px; /* Espaço entre o ícone e o texto */
+}
+
+/* --- Estilos para a busca de filmes da OMDb API --- */
+.search-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end; /* Alinha o botão com os inputs */
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f0f5; /* Um rosa bem clarinho */
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.search-group label {
+    flex-basis: 100%; /* Faz a label ocupar a linha inteira */
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.search-input {
+    flex: 3; /* Permite que o input de título cresça mais */
+    min-width: 150px;
+}
+
+.search-input-year {
+    flex: 1; /* Input de ano menor */
+    min-width: 80px;
+}
+
+.search-results-container {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: var(--card-background);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex; /* Para organizar os itens de resultado */
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center; /* Centraliza os resultados */
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    background-color: #fffafb;
+    border: 1px solid var(--secondary-color);
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    flex-basis: calc(50% - 15px); /* Dois itens por linha, ajustado para gap */
+    box-sizing: border-box;
+    transition: transform 0.2s ease;
+}
+
+.search-result-item:hover {
+    transform: translateY(-3px);
+}
+
+.search-result-item .result-poster {
+    width: 60px;
+    height: 90px; /* Proporção de pôster comum */
+    object-fit: cover; /* Garante que a imagem preencha o espaço */
+    border-radius: 5px;
+    margin-right: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.search-result-item h4 {
+    margin: 0;
+    font-size: 1.1em;
+    color: var(--primary-color);
+}
+
+.search-result-item p {
+    font-size: 0.9em;
+    color: #666;
+    margin: 5px 0;
+}
+
+.select-movie-btn {
+    /* Estilos já devem vir de .button-submit ou similar */
+    font-size: 0.85em; /* Um pouco menor para o botão interno */
+    padding: 5px 10px !important; /* !important para sobrescrever seletor mais forte */
+    margin-top: 5px !important;
+}
+
+/* Estilos para o pôster dentro do card do filme */
+.movie-poster-container {
+    text-align: center;
+    margin-top: 0; /* Remove margem superior se houver */
+    margin-bottom: 15px;
+}
+
+.movie-poster {
+    max-width: 180px; /* Tamanho do pôster no card */
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border: 2px solid var(--primary-color); /* Borda mais grossa */
+}
+
+
+/* --- Footer --- */
+footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 40px;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 0.9em;
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+}
+
+/* --- Responsividade --- */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2em;
+    }
+
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    header nav {
+        margin-top: 10px;
+    }
+
+    .add-movie-section, .movie-list-section, .login-container {
+        padding: 20px;
+    }
+
+    .filter-sort-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-form {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filter-group {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .filter-form select, .filter-form input[type="text"] {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .button-filter {
+        width: 100%;
+    }
+
+    .movie-cards-container {
+        grid-template-columns: 1fr; /* Uma coluna em telas menores */
+    }
+
+    .search-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .search-input, .search-input-year {
+        width: 100%;
+        min-width: unset;
+    }
+    .search-result-item {
+        flex-basis: 100%; /* Um item por linha em telas menores */
+        flex-direction: column; /* Empilha pôster e texto */
+        text-align: center;
+    }
+    .search-result-item .result-poster {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.8em;
+    }
+    h2 {
+        font-size: 1.6em;
+    }
+    .form-group input, .form-group textarea {
+        padding: 10px;
+    }
+    .button-submit, .button-filter, .button-logout {
+        font-size: 1em;
+        padding: 10px 15px;
+    }
+    .button-action-card { /* Ajusta tamanho para telas menores */
+        padding: 6px 10px;
+        font-size: 0.85em;
+        min-width: unset;
+    }
+}

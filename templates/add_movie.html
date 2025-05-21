@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="add-movie-section">
+        <h2><i class="fas fa-film"></i> Adicionar Novo Filme <i class="fas fa-plus-circle"></i></h2>
+
+        <div class="form-group search-group">
+            <label for="search_title">Pesquisar Título (Filme/Série):</label>
+            <input type="text" id="search_title" placeholder="Digite o título..." class="search-input">
+            <label for="search_year" style="margin-left: 10px;">Ano (opcional):</label>
+            <input type="number" id="search_year" placeholder="Ano" class="search-input-year">
+            <button type="button" id="search_button" class="button-filter" style="width: auto; margin-top: 0;"><i class="fas fa-search"></i> Buscar</button>
+        </div>
+        <div id="search_results" class="search-results-container">
+            </div>
+
+        <hr style="margin: 30px 0; border: 0; border-top: 1px dashed var(--border-color);">
+
+        <h3><i class="fas fa-magic"></i> Ou Preencha Manualmente <i class="fas fa-hand-pointer"></i></h3>
+        <form method="POST" action="{{ url_for('add_movie') }}" id="movie_form">
+            <input type="hidden" id="imdb_id" name="imdb_id" value="{{ movie_data.imdbID if movie_data }}">
+            <input type="hidden" id="poster_url" name="poster" value="{{ movie_data.poster if movie_data }}">
+            <input type="hidden" id="plot_text" name="plot" value="{{ movie_data.plot if movie_data }}">
+
+            <div class="form-group">
+                <label for="title">Título:</label>
+                <input type="text" id="title" name="title" value="{{ movie_data.title if movie_data else '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="director">Diretor:</label>
+                <input type="text" id="director" name="director" value="{{ movie_data.director if movie_data else '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="year">Ano:</label>
+                <input type="number" id="year" name="year" value="{{ movie_data.year if movie_data else '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="genre">Gênero:</label>
+                <input type="text" id="genre" name="genre" value="{{ movie_data.genre if movie_data else '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="rating">Sua Nota (0.0 a 10.0):</label>
+                <input type="number" id="rating" name="rating" step="0.1" min="0" max="10" value="{{ '%.1f' | format(movie_data.rating) if movie_data and movie_data.rating else '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="watched_date">Data em que assistiu:</label>
+                <input type="date" id="watched_date" name="watched_date" value="{{ movie_data.watched_date if movie_data else '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="comments">Sua Observação/Comentário (Opcional):</label>
+                <textarea id="comments" name="comments">{{ movie_data.comments if movie_data and movie_data.comments else '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="watched_by">Visto por (Seu nome):</label>
+                <input type="text" id="watched_by" name="watched_by" value="{{ current_user.username.capitalize() }}" required>
+            </div>
+            
+            <button type="submit" class="button-submit"><i class="fas fa-save"></i> Salvar Filme</button>
+        </form>
+        <a href="{{ url_for('index') }}" class="button-logout" style="margin-top: 15px; display: block; width: 100%; text-align: center;"><i class="fas fa-arrow-left"></i> Voltar para a Lista</a>
+    </div>
+
+    <script>
+        // JavaScript para interagir com a OMDb API no frontend
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchTitleInput = document.getElementById('search_title');
+            const searchYearInput = document.getElementById('search_year');
+            const searchButton = document.getElementById('search_button');
+            const searchResultsDiv = document.getElementById('search_results');
+            const movieForm = document.getElementById('movie_form');
+
+            // Campos do formulário para preencher
+            const imdbIdInput = document.getElementById('imdb_id');
+            const titleInput = document.getElementById('title');
+            const directorInput = document.getElementById('director');
+            const yearInput = document.getElementById('year');
+            const genreInput = document.getElementById('genre');
+            const plotTextInput = document.getElementById('plot_text');
+            const posterUrlInput = document.getElementById('poster_url');
+            const ratingInput = document.getElementById('rating'); // Sua nota
+            const watchedDateInput = document.getElementById('watched_date'); // Data assistida
+            const commentsInput = document.getElementById('comments'); // Comentários
+            const watchedByInput = document.getElementById('watched_by'); // Visto por
+
+            searchButton.addEventListener('click', function() {
+                const title = searchTitleInput.value.trim();
+                const year = searchYearInput.value.trim();
+                searchResultsDiv.innerHTML = ''; // Limpa resultados anteriores
+
+                if (title.length < 3) {
+                    searchResultsDiv.innerHTML = '<p class="info">Digite pelo menos 3 caracteres para buscar.</p>';
+                    return;
+                }
+
+                searchResultsDiv.innerHTML = '<p class="info"><i class="fas fa-spinner fa-spin"></i> Buscando...</p>';
+
+                fetch(`/search_omdb?title=${encodeURIComponent(title)}&year=${encodeURIComponent(year)}`)
+                    .then(response => {
+                        if (!response.ok) { // Verifica se a resposta HTTP foi bem-sucedida (status 2xx)
+                            throw new Error('Erro na resposta do servidor Flask.');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        searchResultsDiv.innerHTML = ''; // Limpa o "Buscando..."
+                        if (data.results && data.results.length > 0) {
+                            data.results.forEach(movie => {
+                                const movieResult = document.createElement('div');
+                                movieResult.classList.add('search-result-item');
+                                movieResult.innerHTML = `
+                                    <img src="${movie.poster}" alt="Pôster de ${movie.title}" class="result-poster">
+                                    <div>
+                                        <h4>${movie.title} (${movie.year})</h4>
+                                        <p>Tipo: ${movie.type.charAt(0).toUpperCase() + movie.type.slice(1)}</p>
+                                        <button type="button" class="select-movie-btn button-submit" data-imdbid="${movie.imdbID}" style="width: auto; padding: 5px 10px; margin-top: 5px; font-size: 0.85em;"><i class="fas fa-check-circle"></i> Selecionar</button>
+                                    </div>
+                                `;
+                                searchResultsDiv.appendChild(movieResult);
+                            });
+                        } else {
+                            searchResultsDiv.innerHTML = '<p class="warning">Nenhum filme/série encontrado com este título.</p>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro na busca da OMDb (via Flask):', error);
+                        // A mensagem de erro original estava aqui, vamos mantê-la como está, mas sabemos que a API está OK
+                        // Este erro agora virá se o Flask retornar um status de erro (ex: 500) ou se houver um problema de rede no navegador.
+                        searchResultsDiv.innerHTML = '<p class="danger">Erro ao buscar filmes. Verifique sua conexão ou a chave da API.</p>';
+                    });
+            });
+
+            // Listener para os botões "Selecionar"
+            searchResultsDiv.addEventListener('click', function(event) {
+                if (event.target.classList.contains('select-movie-btn')) {
+                    const imdbID = event.target.dataset.imdbid;
+                    searchResultsDiv.innerHTML = '<p class="info"><i class="fas fa-spinner fa-spin"></i> Carregando detalhes...</p>';
+
+                    fetch(`/get_omdb_details/${imdbID}`)
+                        .then(response => {
+                            if (!response.ok) { // Verifica se a resposta HTTP foi bem-sucedida (status 2xx)
+                                throw new Error('Erro na resposta do servidor Flask ao obter detalhes.');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.error) {
+                                alert('Erro ao carregar detalhes: ' + data.error);
+                                searchResultsDiv.innerHTML = ''; // Limpa o carregando
+                                return;
+                            }
+                            // Preenche os campos do formulário principal
+                            imdbIdInput.value = imdbID;
+                            titleInput.value = data.title || '';
+                            directorInput.value = data.director || '';
+                            yearInput.value = data.year || '';
+                            genreInput.value = data.genre || '';
+                            plotTextInput.value = data.plot || '';
+                            posterUrlInput.value = data.poster || '';
+
+                            // Limpa os resultados da busca e o campo de busca
+                            searchResultsDiv.innerHTML = '';
+                            searchTitleInput.value = '';
+                            searchYearInput.value = '';
+
+                            // Foca no campo de nota ou data
+                            ratingInput.focus();
+                            alert('Informações do filme preenchidas! Agora insira sua nota, data e observação.');
+
+                        })
+                        .catch(error => {
+                            console.error('Erro ao obter detalhes do filme (via Flask):', error);
+                            searchResultsDiv.innerHTML = '<p class="danger">Erro ao carregar detalhes do filme.</p>';
+                        });
+                }
+            });
+
+            // Preencher a data atual por padrão (opcional)
+            // Apenas se o campo de data não estiver pré-preenchido por movie_data
+            if (!watchedDateInput.value) {
+                const today = new Date();
+                const dd = String(today.getDate()).padStart(2, '0');
+                const mm = String(today.getMonth() + 1).padStart(2, '0'); // Janeiro é 0!
+                const yyyy = today.getFullYear();
+                watchedDateInput.value = `${yyyy}-${mm}-${dd}`;
+            }
+        });
+    </script>
+{% endblock %}

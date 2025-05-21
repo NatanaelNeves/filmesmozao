@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="movie-list-section">
+        <h2><i class="fas fa-search"></i> Nossos Filmes Registrados <i class="fas fa-list"></i></h2>
+
+        <div style="text-align: center; margin-bottom: 30px;">
+            <a href="{{ url_for('add_movie') }}" class="button-submit" style="width: auto; display: inline-block;"><i class="fas fa-plus-circle"></i> Adicionar Novo Filme</a>
+        </div>
+
+        <div class="filter-sort-bar">
+            <form method="GET" action="{{ url_for('index') }}" class="filter-form">
+                <div class="filter-group">
+                    <label for="filter_year">Ano:</label>
+                    <input type="text" id="filter_year" name="filter_year" placeholder="Filtrar por ano" value="{{ current_filter_year if current_filter_year else '' }}">
+                </div>
+
+                <div class="filter-group">
+                    <label for="filter_genre">Gênero:</label>
+                    <select id="filter_genre" name="filter_genre">
+                        <option value="all">Todos os Gêneros</option>
+                        {% for genre in genres %}
+                            <option value="{{ genre }}" {% if current_filter_genre == genre %}selected{% endif %}>{{ genre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="sort_by">Ordenar por:</label>
+                    <select id="sort_by" name="sort_by">
+                        <option value="watched_date" {% if current_sort_by == 'watched_date' %}selected{% endif %}>Data Assistida</option>
+                        <option value="title" {% if current_sort_by == 'title' %}selected{% endif %}>Título</option>
+                        <option value="rating" {% if current_sort_by == 'rating' %}selected{% endif %}>Nota</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="order">Ordem:</label>
+                    <select id="order" name="order">
+                        <option value="desc" {% if current_order == 'desc' %}selected{% endif %}>Mais Recente/Maior</option>
+                        <option value="asc" {% if current_order == 'asc' %}selected{% endif %}>Mais Antigo/Menor</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="button-filter"><i class="fas fa-filter"></i> Filtrar/Ordenar</button>
+                <a href="{{ url_for('index') }}" class="button-filter button-clear-filter" style="width: auto; margin-top: 20px;"><i class="fas fa-redo"></i> Limpar Filtro</a>
+            </form>
+        </div>
+
+        {% if movies %}
+            <div class="movie-cards-container">
+                {% for movie in movies %}
+                    <div class="movie-card">
+                        {% if movie.poster %}
+                            <div class="movie-poster-container">
+                                <img src="{{ movie.poster }}" alt="Pôster de {{ movie.title }}" class="movie-poster">
+                            </div>
+                        {% endif %}
+                        <h3><i class="fas fa-video"></i> {{ movie.title }}</h3>
+                        <p><strong>Diretor:</strong> {{ movie.director }}</p>
+                        <p><strong>Ano:</strong> {{ movie.year }}</p>
+                        <p><strong>Gênero:</strong> {{ movie.genre }}</p>
+                        <p><strong>Sua Nota:</strong> <span style="font-weight: bold; color: var(--primary-color);">{{ '%.1f' | format(movie.rating) }}</span> / 10 <i class="fas fa-star" style="color: gold;"></i></p>
+                        <p><strong>Assistido em:</strong> {{ movie.watched_date.strftime('%d/%m/%Y') }}</p>
+                        {% if movie.comments %}
+                            <p><strong>Comentários:</strong> {{ movie.comments }}</p>
+                        {% endif %}
+                        {% if movie.plot %}
+                            <p><strong>Sinopse:</strong> {{ movie.plot }}</p>
+                        {% endif %}
+                        <p class="watched-by">Registrado por: {{ movie.watched_by }}</p>
+
+                        <div class="actions">
+                            <a href="{{ url_for('edit_movie', movie_id=movie.id) }}" class="button-action-card">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+
+                            <form method="POST" action="{{ url_for('delete_movie', movie_id=movie.id) }}" style="display:inline;">
+                                <button type="submit" class="button-action-card button-delete-card" onclick="return confirm('Tem certeza que deseja deletar este filme?')">
+                                    <i class="fas fa-trash-alt"></i> Deletar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="text-align: center; font-style: italic; color: #666;">Nenhum filme encontrado. Que tal adicionar um?</p>
+        {% endif %}
+    </div>
+{% endblock %}

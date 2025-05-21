@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="add-movie-section"> {# Reutilizando o estilo da seção de adicionar filme #}
+        <h2><i class="fas fa-edit"></i> Editar Filme: {{ movie.title }} <i class="fas fa-pencil-alt"></i></h2>
+        <form method="POST" action="{{ url_for('edit_movie', movie_id=movie.id) }}">
+            <input type="hidden" id="poster_url" name="poster" value="{{ movie.poster if movie.poster else '' }}">
+            <input type="hidden" id="plot_text" name="plot" value="{{ movie.plot if movie.plot else '' }}">
+
+            <div class="form-group">
+                <label for="title">Título:</label>
+                <input type="text" id="title" name="title" value="{{ movie.title }}" required>
+            </div>
+            <div class="form-group">
+                <label for="director">Diretor:</label>
+                <input type="text" id="director" name="director" value="{{ movie.director }}" required>
+            </div>
+            <div class="form-group">
+                <label for="year">Ano:</label>
+                <input type="number" id="year" name="year" value="{{ movie.year }}" required>
+            </div>
+            <div class="form-group">
+                <label for="genre">Gênero:</label>
+                <input type="text" id="genre" name="genre" value="{{ movie.genre }}" required>
+            </div>
+            <div class="form-group">
+                <label for="rating">Nota (0.0 a 10.0):</label>
+                <input type="number" id="rating" name="rating" step="0.1" min="0" max="10" value="{{ '%.1f' | format(movie.rating) }}" required>
+            </div>
+            <div class="form-group">
+                <label for="watched_date">Data em que assistiu:</label>
+                <input type="date" id="watched_date" name="watched_date" value="{{ movie.watched_date.strftime('%Y-%m-%d') }}" required>
+            </div>
+            <div class="form-group">
+                <label for="comments">Observação/Comentário (Opcional):</label>
+                <textarea id="comments" name="comments">{{ movie.comments if movie.comments else '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="watched_by">Visto por (Seu nome):</label>
+                <input type="text" id="watched_by" name="watched_by" value="{{ movie.watched_by }}" required>
+            </div>
+            
+            {# Exibe o pôster atual do filme, se houver #}
+            {% if movie.poster %}
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <label>Pôster Atual:</label><br>
+                    <img src="{{ movie.poster }}" alt="Pôster de {{ movie.title }}" style="max-width: 150px; height: auto; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                </div>
+            {% endif %}
+            <button type="submit" class="button-submit"><i class="fas fa-save"></i> Salvar Alterações</button>
+        </form>
+        <a href="{{ url_for('index') }}" class="button-logout" style="margin-top: 15px; display: block; width: 100%; text-align: center;"><i class="fas fa-arrow-left"></i> Voltar para a Lista</a>
+    </div>
+{% endblock %}
