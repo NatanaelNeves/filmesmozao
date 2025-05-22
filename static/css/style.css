@@ -12,7 +12,10 @@
     --danger-color: #f44336;
     --info-color: #2196F3;
     --warning-color: #ff9800;
+    --shadow-color: rgba(255, 105, 180, 0.2); /* Rosa mais suave para sombra */
+    --hover-shadow: rgba(255, 105, 180, 0.35); /* Sombra mais intensa no hover */
 }
+
 
 body {
     font-family: 'Quicksand', sans-serif;
@@ -36,6 +39,7 @@ header {
     color: white;
     padding: 15px 0;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px var(--shadow-color); /* Um pouco mais pronunciado */
 }
 
 .header-content {
@@ -80,6 +84,8 @@ header nav span {
     padding: 30px;
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    box-shadow: 0 8px 20px var(--shadow-color); /* Sombra mais suave e "flutuante" */
+    transition: box-shadow 0.3s ease; /* Adicionar transição na sombra */
     margin-bottom: 30px;
     border: 1px solid var(--border-color);
 }
