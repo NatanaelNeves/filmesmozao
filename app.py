@@ -111,24 +111,18 @@ def get_movie_data_from_omdb(title=None, year=None, imdb_id=None):
 
 # --- Inicialização do Banco de Dados e Usuários Padrão ---
 with app.app_context():
-    # Para aplicar mudanças no modelo (como nullable=True),
-    # se você estiver migrando de SQLite para PostgreSQL no Render,
-    # o Render criará as tabelas no PostgreSQL na primeira vez.
-    # Se você já tinha dados no SQLite e quer migrá-los para o PostgreSQL,
-    # isso é um passo manual (exportar/importar) ou via ferramenta de migração.
     db.create_all()
 
     # Adiciona usuários iniciais (se não existirem)
-    # As senhas devem ser hashes SHA256 (ou bcrypt em apps maiores)
-    # Lidas de variáveis de ambiente no Render, ou fallback para dev local
-    password_hash_voce = os.environ.get('PASSWORD_HASH_VOCE', hashlib.sha256("senha_dev_voce").hexdigest()) # MUDAR senhas de dev!
+    # AS CORREÇÕES ESTÃO AQUI: .encode('utf-8') adicionado
+    password_hash_voce = os.environ.get('PASSWORD_HASH_VOCE', hashlib.sha256("senha_dev_voce".encode('utf-8')).hexdigest()) # CORRIGIDO!
     if not User.query.filter_by(username='voce').first():
         new_user = User(username='voce', password_hash=password_hash_voce)
         db.session.add(new_user)
         db.session.commit()
         print("Usuário 'voce' criado.")
 
-    password_hash_namorada = os.environ.get('PASSWORD_HASH_NAMORADA', hashlib.sha256("senha_dev_namorada").hexdigest()) # MUDAR senhas de dev!
+    password_hash_namorada = os.environ.get('PASSWORD_HASH_NAMORADA', hashlib.sha256("senha_dev_namorada".encode('utf-8')).hexdigest()) # CORRIGIDO!
     if not User.query.filter_by(username='namorada').first():
         new_user = User(username='namorada', password_hash=password_hash_namorada)
         db.session.add(new_user)
@@ -191,7 +185,7 @@ def index():
             query = query.order_by(Movie.rating.asc().nulls_last())
         else:
             query = query.order_by(Movie.rating.desc().nulls_last())
-    else: # watched_date ou status (padrão)
+    else: # watched_date (padrão)
         if order == 'asc':
             query = query.order_by(Movie.watched_date.asc())
         else:
@@ -287,7 +281,6 @@ def add_movie():
                 genre = api_data['genre']
                 plot = api_data['plot']
                 poster = api_data['poster']
-                # Também pegue o imdbID da API para salvar no banco
                 imdb_id = api_data['imdbID']
             else:
                 flash('Não foi possível obter os detalhes completos do filme da OMDb. Por favor, preencha manualmente.', 'warning')
@@ -324,7 +317,6 @@ def add_movie():
         watched_by = request.form.get('watched_by')
         status = request.form.get('status', 'assistido')
 
-        # Validação de campos OBRIGATÓRIOS (nota não está mais aqui)
         if not title or not director or not year or not genre  or not watched_date_str:
             flash('Por favor, preencha todos os campos obrigatórios (Título, Diretor, Ano, Gênero, Data).', 'danger')
             return render_template('add_movie.html', movie_data={
@@ -398,7 +390,6 @@ def edit_movie(movie_id):
         movie.imdbID = request.form.get('imdb_id')
         movie.status = request.form.get('status', 'assistido')
 
-        # Validação de campos OBRIGATÓRIOS (nota não está mais aqui)
         if not movie.title or not movie.director or not movie.year or not movie.genre or not watched_date_str:
             flash('Por favor, preencha todos os campos obrigatórios (Título, Diretor, Ano, Gênero, Data).', 'danger')
             return render_template('edit_movie.html', movie=movie)
@@ -427,33 +418,27 @@ def delete_movie(movie_id):
 @app.route('/stats')
 @login_required
 def stats():
-    # Total de filmes assistidos
     total_movies = db.session.query(Movie).filter_by(status='assistido').count()
 
-    # Total de filmes para ver
     total_to_watch = db.session.query(Movie).filter_by(status='para_ver').count()
 
-    # Nota média (apenas de filmes assistidos e que tenham nota)
     avg_rating_result = db.session.query(func.avg(Movie.rating))\
                                .filter(Movie.status=='assistido', Movie.rating.isnot(None))\
                                .scalar()
-    avg_rating = round(avg_rating_result, 1) if avg_rating_result is not None else 0.0 # Ajuste para 0.0 se não houver notas
+    avg_rating = round(avg_rating_result, 1) if avg_rating_result is not None else 0.0
 
-    # Top 5 gêneros mais assistidos
     top_genres = db.session.query(Movie.genre, func.count(Movie.genre))\
                            .filter(Movie.status=='assistido', Movie.genre.isnot(None), Movie.genre != '')\
                            .group_by(Movie.genre)\
                            .order_by(func.count(Movie.genre).desc())\
                            .limit(5).all()
 
-    # Filmes assistidos por cada usuário
     movies_by_user = db.session.query(Movie.watched_by, func.count(Movie.watched_by))\
                                .filter(Movie.status=='assistido', Movie.watched_by.isnot(None), Movie.watched_by != '')\
                                .group_by(Movie.watched_by)\
                                .order_by(func.count(Movie.watched_by).desc())\
                                .all()
 
-    # Filmes mais recentes assistidos (últimos 5)
     recent_movies = db.session.query(Movie)\
                               .filter_by(status='assistido')\
                               .order_by(Movie.watched_date.desc())\
@@ -469,4 +454,4 @@ def stats():
 
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True)
