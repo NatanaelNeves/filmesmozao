@@ -1,4 +1,4 @@
-# app.py
+# app.py (COMPLETO E ATUALIZADO)
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
@@ -6,6 +6,7 @@ from datetime import datetime, date
 import hashlib # Para hash de senhas
 import os # Para gerar a chave secreta (ex: os.urandom(24).hex())
 import requests # Para fazer requisições HTTP para a API externa (OMDb)
+from sqlalchemy import func # Importar func para funções de agregação (AVG, COUNT)
 
 app = Flask(__name__)
 
@@ -57,14 +58,20 @@ class Movie(db.Model):
     director = db.Column(db.String(100), nullable=False)
     year = db.Column(db.Integer, nullable=False)
     genre = db.Column(db.String(50), nullable=False)
-    rating = db.Column(db.Float, nullable=False)
+    rating = db.Column(db.Float, nullable=True) # AGORA É OBRIGATÓRIO (nullable=True)
     watched_date = db.Column(db.Date, nullable=False) # Tipo Date para datas
     comments = db.Column(db.Text) # Campo de comentários, pode ser opcional
     watched_by = db.Column(db.String(100), nullable=False) # Quem adicionou/assistiu
+    # NOVO CAMPO:
+    # Indica se o filme foi assistido "juntos" ou está na lista "para_ver"
+    # Você pode expandir isso para 'eu_vi', 'mozão_viu', 'juntos'
+    status = db.Column(db.String(20), nullable=False, default='assistido')
+
 
     # NOVOS CAMPOS PARA DADOS DA OMDb API
     plot = db.Column(db.Text) # Sinopse
     poster = db.Column(db.String(200)) # URL do pôster
+    imdbID = db.Column(db.String(20), unique=True, nullable=True) # Adicionei imdbID ao modelo para evitar duplicatas e facilitar busca
 
     def __repr__(self):
         return f'<Movie {self.title}>'
@@ -89,7 +96,7 @@ def get_movie_data_from_omdb(title=None, year=None, imdb_id=None):
     Retorna um dicionário com os dados relevantes ou None se não encontrar.
     """
     params = {'apikey': OMDB_API_KEY}
-    
+
     if imdb_id:
         params['i'] = imdb_id # Busca por IMDb ID
     elif title:
@@ -132,31 +139,25 @@ def get_movie_data_from_omdb(title=None, year=None, imdb_id=None):
     return None
 
 # --- Inicialização do Banco de Dados e Usuários Padrão ---
-# Este bloco será executado uma vez quando o aplicativo iniciar.
-# Ele cria as tabelas e adiciona usuários padrão se eles não existirem.
+# ESTE BLOCO PRECISARÁ DE ATENÇÃO PARA A MUDANÇA NO CAMPO RATING
 with app.app_context():
-    db.create_all() # Cria todas as tabelas definidas pelos modelos (User e Movie)
+    # Para aplicar mudanças no modelo (como nullable=True),
+    # o SQLite precisa de uma migração ou você precisa apagar/renomear o 'movies.db'
+    # para que um novo banco seja criado com a estrutura atualizada.
+    # Ex: os.remove('movies.db') se quiser apagar tudo e recriar.
+    db.create_all()
 
     # Adiciona usuários iniciais (se não existirem)
     # ATENÇÃO: MUDE AS SENHAS PARA ALGO SEGURO!
-    # Gere os hashes das senhas no terminal Python usando hashlib.sha256:
-    # import hashlib
-    # print(hashlib.sha256("sua_senha_para_voce".encode('utf-8')).hexdigest())
-    # print(hashlib.sha256("sua_senha_para_namorada".encode('utf-8')).hexdigest())
-
-    # Usuário 'voce'
+    password_hash_voce = "69b8d3dee5068ecc1fc97b540e664abd02364f9c383c4bc3ae43fa466e3be4cd" # MUDAR!
     if not User.query.filter_by(username='voce').first():
-        # COLOQUE O HASH DA SENHA PARA O USUÁRIO 'voce' AQUI
-        password_hash_voce = "69b8d3dee5068ecc1fc97b540e664abd02364f9c383c4bc3ae43fa466e3be4cd" # MUDAR!
         new_user = User(username='voce', password_hash=password_hash_voce)
         db.session.add(new_user)
         db.session.commit()
         print("Usuário 'voce' criado.")
 
-    # Usuário 'namorada'
+    password_hash_namorada = "69b8d3dee5068ecc1fc97b540e664abd02364f9c383c4bc3ae43fa466e3be4cd"  # MUDAR!
     if not User.query.filter_by(username='namorada').first():
-        # COLOQUE O HASH DA SENHA PARA O USUÁRIO 'namorada' AQUI
-        password_hash_namorada = "69b8d3dee5068ecc1fc97b540e664abd02364f9c383c4bc3ae43fa466e3be4cd"  # MUDAR!
         new_user = User(username='namorada', password_hash=password_hash_namorada)
         db.session.add(new_user)
         db.session.commit()
@@ -174,7 +175,6 @@ def login():
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
 
-        # Verifica o hash da senha
         if user and user.check_password(password):
             login_user(user)
             flash('Login bem-sucedido!', 'success')
@@ -193,7 +193,6 @@ def logout():
 @app.route('/')
 @login_required
 def index():
-    # Lógica de filtro e ordenação
     query = Movie.query
 
     # Filtro por ano
@@ -206,6 +205,11 @@ def index():
     if filter_genre and filter_genre != 'all':
         query = query.filter_by(genre=filter_genre)
 
+    # NOVO FILTRO: Por status (assistido / para_ver)
+    filter_status = request.args.get('filter_status')
+    if filter_status and filter_status != 'all':
+        query = query.filter_by(status=filter_status)
+
     # Ordenação
     sort_by = request.args.get('sort_by', 'watched_date') # Padrão: por data
     order = request.args.get('order', 'desc') # Padrão: descendente
@@ -216,30 +220,35 @@ def index():
         else:
             query = query.order_by(Movie.title.desc())
     elif sort_by == 'rating':
+        # Ao ordenar por nota, queremos que nulos venham por último ou primeiro
         if order == 'asc':
-            query = query.order_by(Movie.rating.asc())
+            query = query.order_by(Movie.rating.asc().nulls_last())
         else:
-            query = query.order_by(Movie.rating.desc())
-    else: # watched_date
+            query = query.order_by(Movie.rating.desc().nulls_last())
+    else: # watched_date ou status
         if order == 'asc':
             query = query.order_by(Movie.watched_date.asc())
         else:
             query = query.order_by(Movie.watched_date.desc()) # Ordem padrão para data é mais recente primeiro
 
     movies = query.all()
-    
+
     # Obter lista de gêneros únicos para o filtro
     genres = db.session.query(Movie.genre).distinct().all()
     genres = sorted([g[0] for g in genres])
 
+    # Tipos de status para o filtro (usando o novo campo 'status')
+    movie_statuses = ['assistido', 'para_ver'] # Definir explicitamente
+
     return render_template('index.html', movies=movies,
                            current_filter_year=filter_year,
                            current_filter_genre=filter_genre,
+                           current_filter_status=filter_status, # Passar o filtro de status atual
                            current_sort_by=sort_by,
                            current_order=order,
-                           genres=genres)
+                           genres=genres,
+                           movie_statuses=movie_statuses) # Passar para o template
 
-# Rota para buscar filmes via API (AJAX) - Para preencher a caixa de sugestões
 # Rota para buscar filmes via API (AJAX) - Para preencher a caixa de sugestões
 @app.route('/search_omdb', methods=['GET'])
 @login_required
@@ -273,12 +282,9 @@ def search_omdb():
                     'type': item.get('Type')
                 })
         else:
-            # Se a resposta for False, 'Error' geralmente contém a mensagem da API
             error_message = data.get('Error', 'Erro desconhecido da OMDb API.')
             print(f"DEBUG: OMDb API retornou erro: {error_message}") # DEBUG 3
-            # Podemos até retornar essa mensagem de erro para o frontend se quisermos.
-            # Por enquanto, só vamos logar.
-            
+
         return jsonify({'results': results})
 
     except requests.exceptions.RequestException as e:
@@ -288,27 +294,21 @@ def search_omdb():
         print(f"DEBUG: Erro ao decodificar JSON da OMDb: {e} - Resposta: {response.text}") # DEBUG 5
         return jsonify({'error': 'Resposta inválida da OMDb API.'}), 500
 
-# ...
-
 # Rota para obter detalhes de um filme específico via IMDb ID (AJAX)
 @app.route('/get_omdb_details/<imdb_id>', methods=['GET'])
 @login_required
 def get_omdb_details_route(imdb_id):
-    # Reutiliza a função get_movie_data_from_omdb para obter os detalhes
     movie_details = get_movie_data_from_omdb(imdb_id=imdb_id)
     if movie_details:
         return jsonify(movie_details)
     return jsonify({'error': 'Filme não encontrado na OMDb ou erro na API.'}), 404
 
-
 @app.route('/add_movie', methods=['GET', 'POST'])
 @login_required
 def add_movie():
     if request.method == 'POST':
-        # Se veio da busca via API (com imdb_id)
         imdb_id = request.form.get('imdb_id')
-        
-        # Dados que serão preenchidos
+
         title = request.form.get('title')
         director = request.form.get('director')
         year = request.form.get('year')
@@ -327,39 +327,50 @@ def add_movie():
                 poster = api_data['poster']
             else:
                 flash('Não foi possível obter os detalhes completos do filme da OMDb. Por favor, preencha manualmente.', 'warning')
-        
-        # Tenta converter o ano para int, se disponível
+
         try:
             year = int(year) if year else None
         except ValueError:
-            year = None # Se não for um número válido
+            year = None
 
-        # Campos obrigatórios que o usuário preenche
-        rating = request.form['rating']
-        watched_date_str = request.form['watched_date']
+        # --- MODIFICAÇÃO PARA NOTA OPCIONAL NO add_movie ---
+        rating_str = request.form.get('rating')
+        rating = None # Inicia como None
+        if rating_str: # Se a nota foi fornecida (não é vazia)
+            try:
+                rating = float(rating_str)
+                if not (0.0 <= rating <= 10.0):
+                    flash('Nota inválida. Por favor, insira um número entre 0.0 e 10.0.', 'danger')
+                    return render_template('add_movie.html', movie_data={
+                        'title': title, 'director': director, 'year': year, 'genre': genre,
+                        'rating': rating_str, 'watched_date': request.form.get('watched_date'), 'comments': request.form.get('comments', ''),
+                        'watched_by': request.form.get('watched_by'), 'plot': plot, 'poster': poster, 'imdbID': imdb_id,
+                        'status': request.form.get('status')
+                    })
+            except ValueError:
+                flash('Nota inválida. Por favor, insira um número válido ou deixe em branco.', 'danger')
+                return render_template('add_movie.html', movie_data={
+                    'title': title, 'director': director, 'year': year, 'genre': genre,
+                    'rating': rating_str, 'watched_date': request.form.get('watched_date'), 'comments': request.form.get('comments', ''),
+                    'watched_by': request.form.get('watched_by'), 'plot': plot, 'poster': poster, 'imdbID': imdb_id,
+                    'status': request.form.get('status')
+                })
+        # --- FIM DA MODIFICAÇÃO DA NOTA NO add_movie ---
+
+        watched_date_str = request.form.get('watched_date')
         comments = request.form.get('comments', '')
-        watched_by = request.form['watched_by']
+        watched_by = request.form.get('watched_by') # Use .get() para evitar KeyError se o campo não estiver presente
 
-        # Validação de campos
-        if not title or not director or not year or not genre or not rating or not watched_date_str:
-            flash('Por favor, preencha todos os campos obrigatórios (Título, Diretor, Ano, Gênero, Nota, Data).', 'danger')
-            # Renderiza o formulário novamente com os dados que o usuário já inseriu
+        status = request.form.get('status', 'assistido') # Padrão 'assistido'
+
+        # Validação de campos OBRIGATÓRIOS (nota não está mais aqui)
+        if not title or not director or not year or not genre  or not watched_date_str:
+            flash('Por favor, preencha todos os campos obrigatórios (Título, Diretor, Ano, Gênero, Data).', 'danger')
             return render_template('add_movie.html', movie_data={
                 'title': title, 'director': director, 'year': year, 'genre': genre,
-                'rating': rating, 'watched_date': watched_date_str, 'comments': comments,
-                'watched_by': watched_by, 'plot': plot, 'poster': poster, 'imdbID': imdb_id
-            })
-
-        try:
-            rating = float(rating)
-            if not (0.0 <= rating <= 10.0):
-                raise ValueError("Nota deve estar entre 0.0 e 10.0.")
-        except ValueError:
-            flash('Nota inválida. Por favor, insira um número entre 0.0 e 10.0.', 'danger')
-            return render_template('add_movie.html', movie_data={
-                'title': title, 'director': director, 'year': year, 'genre': genre,
-                'rating': rating, 'watched_date': watched_date_str, 'comments': comments,
-                'watched_by': watched_by, 'plot': plot, 'poster': poster, 'imdbID': imdb_id
+                'rating': rating_str, 'watched_date': watched_date_str, 'comments': comments,
+                'watched_by': watched_by, 'plot': plot, 'poster': poster, 'imdbID': imdb_id,
+                'status': status
             })
 
         try:
@@ -368,8 +379,9 @@ def add_movie():
             flash('Formato de data inválido. Use AAAA-MM-DD.', 'danger')
             return render_template('add_movie.html', movie_data={
                 'title': title, 'director': director, 'year': year, 'genre': genre,
-                'rating': rating, 'watched_date': watched_date_str, 'comments': comments,
-                'watched_by': watched_by, 'plot': plot, 'poster': poster, 'imdbID': imdb_id
+                'rating': rating_str, 'watched_date': watched_date_str, 'comments': comments,
+                'watched_by': watched_by, 'plot': plot, 'poster': poster, 'imdbID': imdb_id,
+                'status': status
             })
 
         new_movie = Movie(
@@ -377,20 +389,21 @@ def add_movie():
             director=director,
             year=year,
             genre=genre,
-            rating=rating,
+            rating=rating, # AQUI JÁ ESTÁ O VALOR CORRETO (float ou None)
             watched_date=watched_date,
             comments=comments,
             watched_by=watched_by,
             plot=plot,
-            poster=poster
+            poster=poster,
+            imdbID=imdb_id, # Salvar imdbID
+            status=status
         )
         db.session.add(new_movie)
         db.session.commit()
         flash('Filme adicionado com sucesso!', 'success')
         return redirect(url_for('index'))
-    
-    # Para requisição GET, renderiza o formulário vazio
-    return render_template('add_movie.html')
+
+    return render_template('add_movie.html', movie_data={})
 
 @app.route('/edit_movie/<int:movie_id>', methods=['GET', 'POST'])
 @login_required
@@ -402,12 +415,34 @@ def edit_movie(movie_id):
         movie.director = request.form['director']
         movie.year = int(request.form['year'])
         movie.genre = request.form['genre']
-        movie.rating = float(request.form['rating'])
+
+        # --- MODIFICAÇÃO PARA NOTA OPCIONAL NO edit_movie ---
+        rating_str = request.form.get('rating')
+        if rating_str: # Se a nota foi fornecida
+            try:
+                movie.rating = float(rating_str)
+                if not (0.0 <= movie.rating <= 10.0):
+                    flash('Nota inválida. Por favor, insira um número entre 0.0 e 10.0.', 'danger')
+                    return render_template('edit_movie.html', movie=movie)
+            except ValueError:
+                flash('Nota inválida. Por favor, insira um número válido ou deixe em branco.', 'danger')
+                return render_template('edit_movie.html', movie=movie)
+        else: # Se a nota estiver vazia, define como None
+            movie.rating = None
+        # --- FIM DA MODIFICAÇÃO DA NOTA NO edit_movie ---
+
         watched_date_str = request.form['watched_date']
         movie.comments = request.form.get('comments', '')
         movie.watched_by = request.form['watched_by']
-        movie.plot = request.form.get('plot', '') # Permite editar a sinopse também
-        movie.poster = request.form.get('poster', url_for('static', filename='images/placeholder.png')) # Permite editar o pôster
+        movie.plot = request.form.get('plot', '')
+        movie.poster = request.form.get('poster', url_for('static', filename='images/placeholder.png'))
+        movie.imdbID = request.form.get('imdb_id') # Atualizar imdbID também na edição
+        movie.status = request.form.get('status', 'assistido')
+
+        # Validação de campos OBRIGATÓRIOS (nota não está mais aqui)
+        if not movie.title or not movie.director or not movie.year or not movie.genre or not watched_date_str:
+            flash('Por favor, preencha todos os campos obrigatórios (Título, Diretor, Ano, Gênero, Data).', 'danger')
+            return render_template('edit_movie.html', movie=movie)
 
         try:
             movie.watched_date = datetime.strptime(watched_date_str, '%Y-%m-%d').date()
@@ -418,7 +453,7 @@ def edit_movie(movie_id):
         db.session.commit()
         flash('Filme atualizado com sucesso!', 'success')
         return redirect(url_for('index'))
-    
+
     return render_template('edit_movie.html', movie=movie)
 
 @app.route('/delete_movie/<int:movie_id>', methods=['POST'])
@@ -429,6 +464,48 @@ def delete_movie(movie_id):
     db.session.commit()
     flash('Filme deletado com sucesso!', 'info')
     return redirect(url_for('index'))
+
+@app.route('/stats')
+@login_required
+def stats():
+    # Total de filmes assistidos
+    total_movies = db.session.query(Movie).filter_by(status='assistido').count()
+
+    # Total de filmes para ver
+    total_to_watch = db.session.query(Movie).filter_by(status='para_ver').count()
+
+    # Nota média (apenas de filmes assistidos)
+    # Garante que 'rating' não seja None ao calcular a média
+    avg_rating_result = db.session.query(func.avg(Movie.rating)).filter(Movie.status=='assistido', Movie.rating.isnot(None)).scalar()
+    avg_rating = round(avg_rating_result, 1) if avg_rating_result else 0.0
+
+    # Top 5 gêneros mais assistidos
+    top_genres = db.session.query(Movie.genre, func.count(Movie.genre))\
+                           .filter_by(status='assistido')\
+                           .group_by(Movie.genre)\
+                           .order_by(func.count(Movie.genre).desc())\
+                           .limit(5).all()
+
+    # Filmes assistidos por cada usuário
+    movies_by_user = db.session.query(Movie.watched_by, func.count(Movie.watched_by))\
+                               .filter_by(status='assistido')\
+                               .group_by(Movie.watched_by)\
+                               .all()
+
+    # Filmes mais recentes assistidos (últimos 5)
+    recent_movies = db.session.query(Movie)\
+                              .filter_by(status='assistido')\
+                              .order_by(Movie.watched_date.desc())\
+                              .limit(5).all()
+
+    return render_template('stats.html',
+                           total_movies=total_movies,
+                           total_to_watch=total_to_watch,
+                           avg_rating=avg_rating,
+                           top_genres=top_genres,
+                           movies_by_user=movies_by_user,
+                           recent_movies=recent_movies)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="movie-list-section"> {# Reutilizando a classe para manter o estilo #}
+        <h2><i class="fas fa-chart-pie"></i> Nossas Estatísticas Cinematográficas <i class="fas fa-chart-bar"></i></h2>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3><i class="fas fa-film"></i> Total de Filmes Assistidos</h3>
+                <p class="stat-number">{{ total_movies }}</p>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-bookmark"></i> Filmes Para Ver</h3>
+                <p class="stat-number">{{ total_to_watch }}</p>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-star"></i> Nota Média</h3>
+                <p class="stat-number">{{ '%.1f' | format(avg_rating) }}</p>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <h3><i class="fas fa-tags"></i> Top 5 Gêneros Assistidos</h3>
+            {% if top_genres %}
+                <ul class="stats-list">
+                    {% for genre, count in top_genres %}
+                        <li>{{ genre }} ({{ count }} filmes)</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Nenhum gênero registrado ainda.</p>
+            {% endif %}
+        </div>
+
+        <div class="stats-section">
+            <h3><i class="fas fa-users"></i> Filmes Registrados por Usuário</h3>
+            {% if movies_by_user %}
+                <ul class="stats-list">
+                    {% for user, count in movies_by_user %}
+                        <li>{{ user.capitalize() }}: {{ count }} filmes</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Nenhum filme registrado por usuário ainda.</p>
+            {% endif %}
+        </div>
+
+        <div class="stats-section">
+            <h3><i class="fas fa-history"></i> Filmes Mais Recentes Assistidos</h3>
+            {% if recent_movies %}
+                <ul class="stats-list">
+                    {% for movie in recent_movies %}
+                        <li>{{ movie.title }} ({{ movie.watched_date.strftime('%d/%m/%Y') }}) - Nota: {{ '%.1f' | format(movie.rating) }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Nenhum filme assistido recentemente.</p>
+            {% endif %}
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{{ url_for('index') }}" class="button-logout" style="width: auto; display: inline-block;"><i class="fas fa-arrow-left"></i> Voltar para a Lista de Filmes</a>
+        </div>
+    </div>
+{% endblock %}

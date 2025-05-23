@@ -4,6 +4,7 @@
     <div class="add-movie-section"> {# Reutilizando o estilo da seção de adicionar filme #}
         <h2><i class="fas fa-edit"></i> Editar Filme: {{ movie.title }} <i class="fas fa-pencil-alt"></i></h2>
         <form method="POST" action="{{ url_for('edit_movie', movie_id=movie.id) }}">
+            <input type="hidden" id="imdb_id" name="imdb_id" value="{{ movie.imdbID if movie.imdbID else '' }}"> {# Mantenha o imdb_id para o caso de querer usar para algo futuro #}
             <input type="hidden" id="poster_url" name="poster" value="{{ movie.poster if movie.poster else '' }}">
             <input type="hidden" id="plot_text" name="plot" value="{{ movie.plot if movie.plot else '' }}">
 
@@ -24,20 +25,28 @@
                 <input type="text" id="genre" name="genre" value="{{ movie.genre }}" required>
             </div>
             <div class="form-group">
-                <label for="rating">Nota (0.0 a 10.0):</label>
-                <input type="number" id="rating" name="rating" step="0.1" min="0" max="10" value="{{ '%.1f' | format(movie.rating) }}" required>
+                <label for="rating">Sua Nota (0.0 a 10.0 - Opcional):</label> {# Alterado para opcional #}
+                <input type="number" id="rating" name="rating" step="0.1" min="0" max="10" value="{{ '%.1f' | format(movie.rating) if movie.rating is not none else '' }}"> {# Removido 'required' #}
             </div>
             <div class="form-group">
                 <label for="watched_date">Data em que assistiu:</label>
                 <input type="date" id="watched_date" name="watched_date" value="{{ movie.watched_date.strftime('%Y-%m-%d') }}" required>
             </div>
             <div class="form-group">
-                <label for="comments">Observação/Comentário (Opcional):</label>
+                <label for="comments">Sua Observação/Comentário (Opcional):</label>
                 <textarea id="comments" name="comments">{{ movie.comments if movie.comments else '' }}</textarea>
             </div>
             <div class="form-group">
                 <label for="watched_by">Visto por (Seu nome):</label>
                 <input type="text" id="watched_by" name="watched_by" value="{{ movie.watched_by }}" required>
+            </div>
+
+            <div class="form-group"> {# NOVO CAMPO: Status do Filme #}
+                <label for="status">Status do Filme:</label>
+                <select id="status" name="status">
+                    <option value="assistido" {% if movie.status == 'assistido' %}selected{% endif %}>Assistido</option>
+                    <option value="para_ver" {% if movie.status == 'para_ver' %}selected{% endif %}>Para Ver</option>
+                </select>
             </div>
             
             {# Exibe o pôster atual do filme, se houver #}
@@ -51,4 +60,57 @@
         </form>
         <a href="{{ url_for('index') }}" class="button-logout" style="margin-top: 15px; display: block; width: 100%; text-align: center;"><i class="fas fa-arrow-left"></i> Voltar para a Lista</a>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusInput = document.getElementById('status');
+            const ratingInput = document.getElementById('rating');
+            const watchedDateInput = document.getElementById('watched_date');
+            const watchedByInput = document.getElementById('watched_by');
+
+            // Função para alternar visibilidade e required
+            function toggleFieldsVisibility() {
+                if (statusInput.value === 'para_ver') {
+                    // Esconder e remover required
+                    ratingInput.value = ''; // Limpa a nota
+                    watchedDateInput.value = ''; // Limpa a data
+                    watchedByInput.value = ''; // Limpa quem assistiu (se for "para ver", não faz sentido)
+                    ratingInput.removeAttribute('required');
+                    watchedDateInput.removeAttribute('required');
+                    watchedByInput.removeAttribute('required');
+
+                    ratingInput.closest('.form-group').style.display = 'none';
+                    watchedDateInput.closest('.form-group').style.display = 'none';
+                    watchedByInput.closest('.form-group').style.display = 'none';
+                } else {
+                    // Mostrar e adicionar required (se não forem de API)
+                    // Apenas se o campo de nota não estiver pré-preenchido via API.
+                    // Para o seu caso, como a nota não é obrigatória, o 'required'
+                    // só será adicionado se o usuário mudar para 'Assistido'.
+                    ratingInput.setAttribute('required', 'required'); 
+                    watchedDateInput.setAttribute('required', 'required');
+                    watchedByInput.setAttribute('required', 'required');
+
+                    ratingInput.closest('.form-group').style.display = 'block';
+                    watchedDateInput.closest('.form-group').style.display = 'block';
+                    watchedByInput.closest('.form-group').style.display = 'block';
+                    
+                    // Se a data estiver vazia, preenche com a data atual
+                    if (!watchedDateInput.value) {
+                        const today = new Date();
+                        const dd = String(today.getDate()).padStart(2, '0');
+                        const mm = String(today.getMonth() + 1).padStart(2, '0');
+                        const yyyy = today.getFullYear();
+                        watchedDateInput.value = `${yyyy}-${mm}-${dd}`;
+                    }
+                }
+            }
+
+            // Adicionar listener para mudança no status
+            statusInput.addEventListener('change', toggleFieldsVisibility);
+
+            // Chamar a função no carregamento inicial da página para o estado atual
+            toggleFieldsVisibility();
+        });
+    </script>
 {% endblock %}

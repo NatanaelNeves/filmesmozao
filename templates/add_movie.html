@@ -39,8 +39,8 @@
                 <input type="text" id="genre" name="genre" value="{{ movie_data.genre if movie_data else '' }}" required>
             </div>
             <div class="form-group">
-                <label for="rating">Sua Nota (0.0 a 10.0):</label>
-                <input type="number" id="rating" name="rating" step="0.1" min="0" max="10" value="{{ '%.1f' | format(movie_data.rating) if movie_data and movie_data.rating else '' }}" required>
+                <label for="rating">Sua Nota (0.0 a 10.0 ):</label> {# Alterado para opcional #}
+                <input type="number" id="rating" name="rating" step="0.1" min="0" max="10" value="{{ '%.1f' | format(movie_data.rating) if movie_data and movie_data.rating is not none else '' }}"> {# Removido 'required' #}
             </div>
             <div class="form-group">
                 <label for="watched_date">Data em que assistiu:</label>
@@ -53,6 +53,14 @@
             <div class="form-group">
                 <label for="watched_by">Visto por (Seu nome):</label>
                 <input type="text" id="watched_by" name="watched_by" value="{{ current_user.username.capitalize() }}" required>
+            </div>
+            
+            <div class="form-group"> {# NOVO CAMPO: Status do Filme #}
+                <label for="status">Status do Filme:</label>
+                <select id="status" name="status">
+                    <option value="assistido" {% if movie_data.status == 'assistido' %}selected{% endif %}>Assistido</option>
+                    <option value="para_ver" {% if movie_data.status == 'para_ver' %}selected{% endif %}>Para Ver</option>
+                </select>
             </div>
             
             <button type="submit" class="button-submit"><i class="fas fa-save"></i> Salvar Filme</button>
@@ -81,6 +89,7 @@
             const watchedDateInput = document.getElementById('watched_date'); // Data assistida
             const commentsInput = document.getElementById('comments'); // Comentários
             const watchedByInput = document.getElementById('watched_by'); // Visto por
+            const statusInput = document.getElementById('status'); // Novo campo status
 
             searchButton.addEventListener('click', function() {
                 const title = searchTitleInput.value.trim();
@@ -96,7 +105,7 @@
 
                 fetch(`/search_omdb?title=${encodeURIComponent(title)}&year=${encodeURIComponent(year)}`)
                     .then(response => {
-                        if (!response.ok) { // Verifica se a resposta HTTP foi bem-sucedida (status 2xx)
+                        if (!response.ok) {
                             throw new Error('Erro na resposta do servidor Flask.');
                         }
                         return response.json();
@@ -123,8 +132,6 @@
                     })
                     .catch(error => {
                         console.error('Erro na busca da OMDb (via Flask):', error);
-                        // A mensagem de erro original estava aqui, vamos mantê-la como está, mas sabemos que a API está OK
-                        // Este erro agora virá se o Flask retornar um status de erro (ex: 500) ou se houver um problema de rede no navegador.
                         searchResultsDiv.innerHTML = '<p class="danger">Erro ao buscar filmes. Verifique sua conexão ou a chave da API.</p>';
                     });
             });
@@ -137,7 +144,7 @@
 
                     fetch(`/get_omdb_details/${imdbID}`)
                         .then(response => {
-                            if (!response.ok) { // Verifica se a resposta HTTP foi bem-sucedida (status 2xx)
+                            if (!response.ok) {
                                 throw new Error('Erro na resposta do servidor Flask ao obter detalhes.');
                             }
                             return response.json();
@@ -175,14 +182,58 @@
             });
 
             // Preencher a data atual por padrão (opcional)
-            // Apenas se o campo de data não estiver pré-preenchido por movie_data
-            if (!watchedDateInput.value) {
+            // Apenas se o campo de data não estiver pré-preenchido por movie_data E o status não for 'para_ver'
+            // O nome da variável 'yyyy' no seu código JS original estava com erro, corrigido para 'year' ou 'currentYear'
+            const currentYear = new Date().getFullYear(); // Definir yyyy corretamente
+            if (!watchedDateInput.value && statusInput.value !== 'para_ver') {
                 const today = new Date();
                 const dd = String(today.getDate()).padStart(2, '0');
-                const mm = String(today.getMonth() + 1).padStart(2, '0'); // Janeiro é 0!
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
                 const yyyy = today.getFullYear();
                 watchedDateInput.value = `${yyyy}-${mm}-${dd}`;
             }
+
+            // Esconder/Mostrar campos com base no status do filme
+            // Função para alternar visibilidade e required
+            function toggleFieldsVisibility() {
+                if (statusInput.value === 'para_ver') {
+                    // Esconder e remover required
+                    ratingInput.value = ''; // Limpa a nota
+                    watchedDateInput.value = ''; // Limpa a data
+                    watchedByInput.value = ''; // Limpa quem assistiu (se for "para ver", não faz sentido)
+                    ratingInput.removeAttribute('required');
+                    watchedDateInput.removeAttribute('required');
+                    watchedByInput.removeAttribute('required');
+
+                    ratingInput.closest('.form-group').style.display = 'none';
+                    watchedDateInput.closest('.form-group').style.display = 'none';
+                    watchedByInput.closest('.form-group').style.display = 'none';
+                } else {
+                    // Mostrar e adicionar required
+                    ratingInput.setAttribute('required', 'required'); // Adiciona required para nota
+                    watchedDateInput.setAttribute('required', 'required');
+                    watchedByInput.setAttribute('required', 'required');
+
+                    ratingInput.closest('.form-group').style.display = 'block';
+                    watchedDateInput.closest('.form-group').style.display = 'block';
+                    watchedByInput.closest('.form-group').style.display = 'block';
+                    
+                    // Se a data estiver vazia, preenche com a data atual
+                    if (!watchedDateInput.value) {
+                        const today = new Date();
+                        const dd = String(today.getDate()).padStart(2, '0');
+                        const mm = String(today.getMonth() + 1).padStart(2, '0');
+                        const yyyy = today.getFullYear();
+                        watchedDateInput.value = `${yyyy}-${mm}-${dd}`;
+                    }
+                }
+            }
+
+            // Adicionar listener para mudança no status
+            statusInput.addEventListener('change', toggleFieldsVisibility);
+
+            // Chamar a função no carregamento inicial da página para o estado atual
+            toggleFieldsVisibility();
         });
     </script>
 {% endblock %}

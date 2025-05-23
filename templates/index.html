@@ -26,6 +26,15 @@
                 </div>
 
                 <div class="filter-group">
+                    <label for="filter_status">Status:</label> {# NOVO CAMPO DE FILTRO #}
+                    <select id="filter_status" name="filter_status">
+                        <option value="all" {% if current_filter_status == 'all' or not current_filter_status %}selected{% endif %}>Todos os Status</option>
+                        <option value="assistido" {% if current_filter_status == 'assistido' %}selected{% endif %}>Assistidos</option>
+                        <option value="para_ver" {% if current_filter_status == 'para_ver' %}selected{% endif %}>Para Ver</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
                     <label for="sort_by">Ordenar por:</label>
                     <select id="sort_by" name="sort_by">
                         <option value="watched_date" {% if current_sort_by == 'watched_date' %}selected{% endif %}>Data Assistida</option>
@@ -54,14 +63,23 @@
                         {% if movie.poster %}
                             <div class="movie-poster-container">
                                 <img src="{{ movie.poster }}" alt="Pôster de {{ movie.title }}" class="movie-poster">
+                                <span class="rating-badge">{{ '%.1f' | format(movie.rating) }} <i class="fas fa-star"></i></span>
+                            </div>
+                        {% else %}
+                            <div class="movie-poster-container">
+                                <img src="{{ url_for('static', filename='images/placeholder.png') }}" alt="Pôster não disponível" class="movie-poster">
+                                <span class="rating-badge">{{ '%.1f' | format(movie.rating) }} <i class="fas fa-star"></i></span>
                             </div>
                         {% endif %}
                         <h3><i class="fas fa-video"></i> {{ movie.title }}</h3>
                         <p><strong>Diretor:</strong> {{ movie.director }}</p>
                         <p><strong>Ano:</strong> {{ movie.year }}</p>
                         <p><strong>Gênero:</strong> {{ movie.genre }}</p>
-                        <p><strong>Sua Nota:</strong> <span style="font-weight: bold; color: var(--primary-color);">{{ '%.1f' | format(movie.rating) }}</span> / 10 <i class="fas fa-star" style="color: gold;"></i></p>
-                        <p><strong>Assistido em:</strong> {{ movie.watched_date.strftime('%d/%m/%Y') }}</p>
+                        {% if movie.status == 'assistido' %}
+                            <p><strong>Assistido em:</strong> {{ movie.watched_date.strftime('%d/%m/%Y') }}</p>
+                        {% else %}
+                            <p class="status-para-ver"><i class="fas fa-bookmark"></i> **Para Ver!**</p> {# Exibe status para filmes 'para_ver' #}
+                        {% endif %}
                         {% if movie.comments %}
                             <p><strong>Comentários:</strong> {{ movie.comments }}</p>
                         {% endif %}
@@ -85,7 +103,7 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p style="text-align: center; font-style: italic; color: #666;">Nenhum filme encontrado. Que tal adicionar um?</p>
+            <p style="text-align: center; font-style: italic; color: #666;">Nenhum filme encontrado com os filtros aplicados. Que tal adicionar um ou limpar os filtros?</p>
         {% endif %}
     </div>
 {% endblock %}
