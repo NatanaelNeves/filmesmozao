@@ -5,6 +5,7 @@
         <h1><i class="fas fa-heart"></i> Bem-vindos ao Nosso Diário de Filmes!</h1>
         <p>Faça login para começar a registrar.</p>
 
+        {# As mensagens flash já são exibidas no base.html, mas se preferir que apareçam aqui também, mantenha este bloco #}
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <ul class="flashes">
@@ -20,58 +21,13 @@
                 <label for="username">Usuário:</label>
                 <input type="text" id="username" name="username" required>
             </div>
-            <div class="form-group password-group"> {# Adicionamos uma classe para estilizar #}
+            <div class="form-group password-group"> {# Manter esta div com a classe #}
                 <label for="password">Senha:</label>
                 <input type="password" id="password" name="password" required>
-                {# O ÍCONE DO OLHO SERÁ INSERIDO AQUI #}
+                {# O ÍCONE DO OLHO - Ele fica aqui! #}
                 <i class="fas fa-eye toggle-password" id="togglePassword"></i>
             </div>
             <button type="submit" class="button-submit">Entrar</button>
         </form>
     </div>
-
-    <style>
-        /* Estilos adicionais para o olho de mostrar/esconder senha */
-        .password-group {
-            position: relative; /* Para posicionar o ícone de olho */
-        }
-
-        .toggle-password {
-            position: absolute;
-            right: 15px; /* Alinha à direita do campo */
-            top: 50%; /* Centraliza verticalmente */
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: var(--primary-color); /* Usa a cor principal do seu tema */
-            font-size: 1.1em;
-            transition: color 0.2s ease;
-        }
-
-        .toggle-password:hover {
-            color: darken(var(--primary-color), 15%); /* Escurece um pouco no hover */
-        }
-
-        /* Ajuste para input quando o olho está presente */
-        .password-group input {
-            padding-right: 40px; /* Cria espaço para o ícone */
-        }
-    </style>
-
-    <script>
-        // JavaScript para a funcionalidade do olhinho
-        document.addEventListener('DOMContentLoaded', function() {
-            const togglePassword = document.getElementById('togglePassword');
-            const passwordInput = document.getElementById('password');
-
-            togglePassword.addEventListener('click', function() {
-                // Alterna o tipo do input
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-
-                // Alterna o ícone (olho aberto / olho fechado)
-                this.classList.toggle('fa-eye');
-                this.classList.toggle('fa-eye-slash');
-            });
-        });
-    </script>
 {% endblock %}
