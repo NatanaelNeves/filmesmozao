@@ -15,7 +15,8 @@ app = Flask(__name__)
 # Exemplo de como gerar no terminal Python:
 # import os
 # print(os.urandom(24).hex())
-app.config['SECRET_KEY'] = 'SUA_CHAVE_SECRETA_MUITO_FORTE_AQUI'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback_secret_key_dev')
+OMDB_API_KEY = os.environ.get('OMDB_API_KEY', 'f9692cb3') # Mantenha sua chave para desenvolvimento local
 
 # Configuração do banco de dados SQLite
 # O banco de dados será criado no mesmo diretório do app.py
@@ -33,7 +34,6 @@ login_manager.login_view = 'login' # Define a rota para a página de login caso 
 # COLOQUE A CHAVE DA OMDb API QUE VOCÊ PEGOU NO SITE http://www.omdbapi.com/ AQUI!
 # Lembre-se que chaves de API devem ser mantidas em segredo em ambientes de produção,
 # idealmente via variáveis de ambiente.
-OMDB_API_KEY = 'f9692cb3'
 
 # --- Modelos do Banco de Dados ---
 # Estes modelos representam as tabelas no seu banco de dados
