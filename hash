@@ -1,3 +1,4 @@
->>> print(hashlib.sha256("amor123".encode('utf-8')).hexdigest())
+ print(hashlib.sha256("amor123".encode('utf-8')).hexdigest())
 69b8d3dee5068ecc1fc97b540e664abd02364f9c383c4bc3ae43fa466e3be4cd
->>>
+MY SECRET KEY 
+a1da7f24fe3b607df629865abbf655e3b20335f03ddc6c3b
