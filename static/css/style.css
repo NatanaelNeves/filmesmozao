@@ -605,7 +605,6 @@ h3 {
 /* Estilos para o pôster dentro do card do filme */
 /* A classe .movie-poster-container e .movie-poster já estão acima com as correções */
 
-/* --- Stats Page Styles --- */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -624,7 +623,7 @@ h3 {
 }
 
 .stat-card h3 {
-    font-family: 'Quicksand', sans-serif; /* Usar Quicksand para títulos de stats */
+    font-family: 'Quicksand', sans-serif;
     color: var(--primary-color);
     font-size: 1.3em;
     margin-bottom: 15px;
@@ -636,7 +635,7 @@ h3 {
 }
 
 .stat-number {
-    font-family: 'Pacifico', cursive; /* Para os números grandes */
+    font-family: 'Pacifico', cursive;
     font-size: 3em;
     color: var(--primary-color);
     font-weight: bold;
@@ -655,14 +654,13 @@ h3 {
 }
 
 .stats-section h3 {
-    text-align: left; /* Alinhar à esquerda os títulos de lista */
+    text-align: left;
     margin-bottom: 20px;
 }
 .stats-section h3 i {
     color: var(--secondary-color);
     margin-right: 10px;
 }
-
 
 .stats-list {
     list-style: none;
@@ -671,7 +669,7 @@ h3 {
 }
 
 .stats-list li {
-    background-color: #fce4ec; /* Cor de fundo suave para itens da lista */
+    background-color: #fce4ec;
     padding: 10px 15px;
     margin-bottom: 8px;
     border-radius: 8px;
@@ -685,6 +683,25 @@ h3 {
 }
 .stats-list li:last-child {
     margin-bottom: 0;
+}
+
+/* NOVO: Estilos para os containers de gráfico */
+.chart-container {
+    height: 400px; /* Altura padrão para os gráficos */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+    position: relative; /* Para posicionamento de texto interno */
+}
+.chart-container canvas {
+    max-height: 100%; /* Garante que o canvas não estoure o container */
+    max-width: 100%;
+}
+.chart-container p { /* Estilo para mensagens dentro do chart-container */
+    position: absolute;
+    color: var(--light-text-color);
+    font-style: italic;
 }
 
 
@@ -820,6 +837,9 @@ footer .fas.fa-heart {
     .stats-grid {
         grid-template-columns: 1fr; /* Uma coluna em telas menores para stats */
     }
+    .chart-container {
+        height: 300px; /* Reduz altura dos gráficos em mobile */
+    }
 }
 
 @media (max-width: 480px) {
@@ -856,5 +876,8 @@ footer .fas.fa-heart {
     }
     .movie-card p {
         font-size: 0.9em;
+    }
+    .chart-container {
+        height: 250px; /* Mais ajustes para telas muito pequenas */
     }
 }

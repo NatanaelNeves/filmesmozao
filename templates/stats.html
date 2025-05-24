@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="movie-list-section"> {# Reutilizando a classe para manter o estilo #}
+    <div class="stats-section"> {# Reutilizando a classe para manter o estilo #}
         <h2><i class="fas fa-chart-pie"></i> Nossas Estatísticas Cinematográficas <i class="fas fa-chart-bar"></i></h2>
 
         <div class="stats-grid">
@@ -18,6 +18,19 @@
                 <p class="stat-number">{{ '%.1f' | format(avg_rating) }}</p>
             </div>
         </div>
+
+        {# NOVO: Seções para os Gráficos #}
+        <div class="stats-section chart-container">
+            <h3><i class="fas fa-chart-line"></i> Distribuição de Gêneros</h3>
+            <canvas id="genreChart"></canvas>
+        </div>
+
+        <div class="stats-section chart-container">
+            <h3><i class="fas fa-users"></i> Filmes por Usuário</h3>
+            <canvas id="userChart"></canvas>
+        </div>
+
+        {# Se você quiser mais gráficos, como "Notas ao Longo do Tempo", adicione mais <canvas> aqui #}
 
         <div class="stats-section">
             <h3><i class="fas fa-tags"></i> Top 5 Gêneros Assistidos</h3>
@@ -36,7 +49,7 @@
         </div>
 
         <div class="stats-section">
-            <h3><i class="fas fa-users"></i> Filmes Registrados por Usuário</h3>
+            <h3><i class="fas fa-users"></i> Filmes Registrados por Usuário (Lista)</h3>
             {% if movies_by_user %}
                 <ul class="stats-list">
                     {% for user, count in movies_by_user %}
@@ -70,4 +83,160 @@
             <a href="{{ url_for('index') }}" class="button-logout" style="width: auto; display: inline-block;"><i class="fas fa-arrow-left"></i> Voltar para a Lista de Filmes</a>
         </div>
     </div>
+
+    {# NOVO: JavaScript do Chart.js e Script para desenhar os gráficos #}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dados para o Gráfico de Gêneros
+            const genreLabels = [];
+            const genreData = [];
+            // Parse top_genres do Flask para JS
+            const topGenres = JSON.parse('{{ top_genres | tojson }}'); 
+            topGenres.forEach(item => {
+                genreLabels.push(item[0]); // Gênero
+                genreData.push(item[1]); // Contagem
+            });
+
+            // Dados para o Gráfico de Filmes por Usuário
+            const userLabels = [];
+            const userData = [];
+            // Parse movies_by_user do Flask para JS
+            const moviesByUser = JSON.parse('{{ movies_by_user | tojson }}');
+            moviesByUser.forEach(item => {
+                userLabels.push(item[0].charAt(0).toUpperCase() + item[0].slice(1)); // Usuário (capitalizado)
+                userData.push(item[1]); // Contagem
+            });
+
+            // Cores baseadas no seu tema fofo
+            const pastelColors = [
+                'rgba(255, 182, 193, 0.8)', // LightPink
+                'rgba(173, 216, 230, 0.8)', // LightBlue
+                'rgba(255, 223, 186, 0.8)', // Peach
+                'rgba(144, 238, 144, 0.8)', // LightGreen
+                'rgba(221, 160, 221, 0.8)', // Plum
+                'rgba(255, 255, 224, 0.8)', // LightYellow
+                'rgba(250, 128, 114, 0.8)', // Salmon
+                'rgba(200, 200, 250, 0.8)'  // LightPurple
+            ];
+
+            // Cores de borda mais escuras
+            const borderColors = [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)',
+                'rgba(199, 199, 199, 1)',
+                'rgba(83, 102, 255, 1)'
+            ];
+
+
+            // Gráfico de Gêneros (Pie Chart)
+            if (genreLabels.length > 0) {
+                const genreCtx = document.getElementById('genreChart').getContext('2d');
+                new Chart(genreCtx, {
+                    type: 'pie', // Pode ser 'doughnut' também
+                    data: {
+                        labels: genreLabels,
+                        datasets: [{
+                            data: genreData,
+                            backgroundColor: pastelColors.slice(0, genreLabels.length),
+                            borderColor: borderColors.slice(0, genreLabels.length),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    font: {
+                                        family: 'Quicksand',
+                                        size: 14
+                                    },
+                                    color: 'var(--text-color)'
+                                }
+                            },
+                            tooltip: {
+                                bodyFont: {
+                                    family: 'Quicksand'
+                                },
+                                titleFont: {
+                                    family: 'Quicksand'
+                                }
+                            }
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('genreChart').closest('.chart-container').innerHTML = '<p style="text-align: center; color: var(--light-text-color);">Adicione filmes assistidos para ver a distribuição de gêneros!</p>';
+            }
+
+
+            // Gráfico de Filmes por Usuário (Bar Chart)
+            if (userLabels.length > 0) {
+                const userCtx = document.getElementById('userChart').getContext('2d');
+                new Chart(userCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: userLabels,
+                        datasets: [{
+                            label: 'Filmes Assistidos',
+                            data: userData,
+                            backgroundColor: pastelColors.slice(0, userLabels.length),
+                            borderColor: borderColors.slice(0, userLabels.length),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false // Não precisa de legenda para uma única barra
+                            },
+                            tooltip: {
+                                bodyFont: {
+                                    family: 'Quicksand'
+                                },
+                                titleFont: {
+                                    family: 'Quicksand'
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    font: {
+                                        family: 'Quicksand'
+                                    },
+                                    color: 'var(--light-text-color)',
+                                    callback: function(value) { // Mostra apenas números inteiros
+                                        if (Number.isInteger(value)) {
+                                            return value;
+                                        }
+                                    }
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    font: {
+                                        family: 'Quicksand'
+                                    },
+                                    color: 'var(--light-text-color)'
+                                }
+                            }
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('userChart').closest('.chart-container').innerHTML = '<p style="text-align: center; color: var(--light-text-color);">Adicione filmes assistidos para ver quem assistiu mais!</p>';
+            }
+        });
+    </script>
 {% endblock %}

@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}" type="image/png">
+
+    {# NOVO: CSS do Toastify-JS #}
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
     <header>
@@ -26,7 +29,8 @@
     </header>
 
     <main class="container">
-        <ul class="flashes">
+        {# REMOVEMOS AQUI O BLOCO PADRÃO DE FLASH MESSAGES #}
+        {# <ul class="flashes">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
@@ -34,7 +38,7 @@
                     {% endfor %}
                 {% endif %}
             {% endwith %}
-        </ul>
+        </ul> #}
 
         {% block content %}{% endblock %}
     </main>
@@ -43,7 +47,7 @@
         <p>&copy; {{ now.year }} Nosso Diário de Filmes - Feito com <i class="fas fa-heart" style="color: #ffcccc;"></i></p>
     </footer>
 
-    {# ESTILO E SCRIPT DO OLHINHO AQUI #}
+    {# ESTILOS E SCRIPTS DO OLHINHO E AGORA DO TOASTIFY-JS #}
     <style>
         /* Estilos para o olho de mostrar/esconder senha */
         .form-group.password-group {
@@ -64,7 +68,7 @@
             position: absolute;
             right: 15px;
             top: 50%;
-            transform: translateY(10px); /* Ajuste este valor se necessário */
+            transform: translateY(10px); /* Ajuste este valor se o ícone ainda não estiver centralizado verticalmente no input */
             cursor: pointer;
             color: var(--primary-color);
             font-size: 1.1em;
@@ -76,6 +80,39 @@
             color: #e07b7b;
         }
 
+        /* Estilos para o Toastify-JS (opcional, pode ser ajustado em style.css também) */
+        .toastify {
+            border-radius: 8px !important; /* Bordas arredondadas */
+            font-family: 'Quicksand', sans-serif !important;
+            font-weight: 600 !important;
+            padding: 12px 20px !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+        }
+        .toastify.toastify-right { /* Posição no canto inferior direito */
+            right: 20px !important;
+        }
+        .toastify.toastify-top { /* Posição no canto superior direito */
+            top: 20px !important;
+        }
+        /* Cores dos toasts, usando suas variáveis */
+        .toastify.success-toast {
+            background: var(--success-color) !important;
+            color: white !important;
+        }
+        .toastify.danger-toast {
+            background: var(--danger-color) !important;
+            color: white !important;
+        }
+        .toastify.info-toast {
+            background: var(--info-color) !important;
+            color: white !important;
+        }
+        .toastify.warning-toast {
+            background: var(--warning-color) !important;
+            color: var(--text-color) !important; /* Texto escuro para warnings */
+        }
+
+        /* Ajuste para telas menores se precisar */
         @media (max-width: 768px) {
             .toggle-password {
                 right: 10px;
@@ -83,8 +120,12 @@
         }
     </style>
 
+    {# NOVO: JavaScript do Toastify-JS #}
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Script do Olhinho (já existente)
             const togglePassword = document.getElementById('togglePassword');
             const passwordInput = document.getElementById('password');
 
@@ -96,6 +137,50 @@
                     this.classList.toggle('fa-eye-slash');
                 });
             }
+
+            // NOVO: Script para exibir Flash Messages como Toasts
+            const flashMessages = JSON.parse('{{ get_flashed_messages(with_categories=true) | tojson }}');
+
+            flashMessages.forEach(function(message) {
+                const category = message[0];
+                const text = message[1];
+                let backgroundColor;
+
+                switch (category) {
+                    case 'success':
+                        backgroundColor = 'var(--success-color)';
+                        break;
+                    case 'danger':
+                        backgroundColor = 'var(--danger-color)';
+                        break;
+                    case 'info':
+                        backgroundColor = 'var(--info-color)';
+                        break;
+                    case 'warning':
+                        backgroundColor = 'var(--warning-color)';
+                        break;
+                    default:
+                        backgroundColor = '#555'; // Cor padrão
+                }
+
+                Toastify({
+                    text: text,
+                    duration: 3000, // Duração em milissegundos
+                    newWindow: true,
+                    close: true,
+                    gravity: "top", // `top` ou `bottom`
+                    position: "right", // `left`, `center` ou `right`
+                    stopOnFocus: true, // Para o tempo se o usuário focar na janela
+                    style: {
+                        background: backgroundColor,
+                        borderRadius: "8px",
+                        fontFamily: "'Quicksand', sans-serif",
+                        fontWeight: "600",
+                        padding: "12px 20px"
+                    },
+                    onClick: function(){} // Callback after click
+                }).showToast();
+            });
         });
     </script>
 </body>
