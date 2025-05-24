@@ -38,29 +38,31 @@
                 <label for="genre">Gênero:</label>
                 <input type="text" id="genre" name="genre" value="{{ movie_data.genre if movie_data else '' }}" required>
             </div>
-            <div class="form-group">
-                <label for="rating">Sua Nota (0.0 a 10.0 ):</label> {# Alterado para opcional #}
-                <input type="number" id="rating" name="rating" step="0.1" min="0" max="10" value="{{ '%.1f' | format(movie_data.rating) if movie_data and movie_data.rating is not none else '' }}"> {# Removido 'required' #}
-            </div>
-            <div class="form-group">
-                <label for="watched_date">Data em que assistiu:</label>
-                <input type="date" id="watched_date" name="watched_date" value="{{ movie_data.watched_date if movie_data else '' }}" required>
-            </div>
-            <div class="form-group">
-                <label for="comments">Sua Observação/Comentário (Opcional):</label>
-                <textarea id="comments" name="comments">{{ movie_data.comments if movie_data and movie_data.comments else '' }}</textarea>
-            </div>
-            <div class="form-group">
-                <label for="watched_by">Visto por (Seu nome):</label>
-                <input type="text" id="watched_by" name="watched_by" value="{{ current_user.username.capitalize() }}" required>
-            </div>
             
-            <div class="form-group"> {# NOVO CAMPO: Status do Filme #}
+            <div class="form-group"> {# Campo para selecionar o Status do Filme #}
                 <label for="status">Status do Filme:</label>
                 <select id="status" name="status">
                     <option value="assistido" {% if movie_data.status == 'assistido' %}selected{% endif %}>Assistido</option>
                     <option value="para_ver" {% if movie_data.status == 'para_ver' %}selected{% endif %}>Para Ver</option>
                 </select>
+            </div>
+
+            <div class="form-group" id="rating-group"> {# Grupo da nota, com ID para controle JS #}
+                <label for="rating">Sua Nota (0.0 a 10.0 - Opcional):</label>
+                <input type="number" id="rating" name="rating" step="0.1" min="0" max="10" value="{{ '%.1f' | format(movie_data.rating) if movie_data and movie_data.rating is not none else '' }}">
+            </div>
+            <div class="form-group" id="watched_date-group"> {# Grupo da data, com ID para controle JS #}
+                <label for="watched_date">Data em que assistiu:</label>
+                <input type="date" id="watched_date" name="watched_date" value="{{ movie_data.watched_date if movie_data else '' }}">
+            </div>
+            <div class="form-group" id="watched_by-group"> {# Grupo de quem assistiu, com ID para controle JS #}
+                <label for="watched_by">Visto por (Seu nome):</label>
+                <input type="text" id="watched_by" name="watched_by" value="{{ current_user.username.capitalize() }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="comments">Sua Observação/Comentário (Opcional):</label>
+                <textarea id="comments" name="comments">{{ movie_data.comments if movie_data and movie_data.comments else '' }}</textarea>
             </div>
             
             <button type="submit" class="button-submit"><i class="fas fa-save"></i> Salvar Filme</button>
@@ -69,15 +71,12 @@
     </div>
 
     <script>
-        // JavaScript para interagir com a OMDb API no frontend
         document.addEventListener('DOMContentLoaded', function() {
             const searchTitleInput = document.getElementById('search_title');
             const searchYearInput = document.getElementById('search_year');
             const searchButton = document.getElementById('search_button');
             const searchResultsDiv = document.getElementById('search_results');
-            const movieForm = document.getElementById('movie_form');
 
-            // Campos do formulário para preencher
             const imdbIdInput = document.getElementById('imdb_id');
             const titleInput = document.getElementById('title');
             const directorInput = document.getElementById('director');
@@ -85,16 +84,21 @@
             const genreInput = document.getElementById('genre');
             const plotTextInput = document.getElementById('plot_text');
             const posterUrlInput = document.getElementById('poster_url');
-            const ratingInput = document.getElementById('rating'); // Sua nota
-            const watchedDateInput = document.getElementById('watched_date'); // Data assistida
-            const commentsInput = document.getElementById('comments'); // Comentários
-            const watchedByInput = document.getElementById('watched_by'); // Visto por
-            const statusInput = document.getElementById('status'); // Novo campo status
+            const ratingInput = document.getElementById('rating');
+            const watchedDateInput = document.getElementById('watched_date');
+            const commentsInput = document.getElementById('comments');
+            const watchedByInput = document.getElementById('watched_by');
+            const statusInput = document.getElementById('status');
+
+            const ratingGroup = document.getElementById('rating-group');
+            const watchedDateGroup = document.getElementById('watched_date-group');
+            const watchedByGroup = document.getElementById('watched_by-group');
+
 
             searchButton.addEventListener('click', function() {
                 const title = searchTitleInput.value.trim();
                 const year = searchYearInput.value.trim();
-                searchResultsDiv.innerHTML = ''; // Limpa resultados anteriores
+                searchResultsDiv.innerHTML = '';
 
                 if (title.length < 3) {
                     searchResultsDiv.innerHTML = '<p class="info">Digite pelo menos 3 caracteres para buscar.</p>';
@@ -111,7 +115,7 @@
                         return response.json();
                     })
                     .then(data => {
-                        searchResultsDiv.innerHTML = ''; // Limpa o "Buscando..."
+                        searchResultsDiv.innerHTML = '';
                         if (data.results && data.results.length > 0) {
                             data.results.forEach(movie => {
                                 const movieResult = document.createElement('div');
@@ -136,7 +140,6 @@
                     });
             });
 
-            // Listener para os botões "Selecionar"
             searchResultsDiv.addEventListener('click', function(event) {
                 if (event.target.classList.contains('select-movie-btn')) {
                     const imdbID = event.target.dataset.imdbid;
@@ -152,10 +155,9 @@
                         .then(data => {
                             if (data.error) {
                                 alert('Erro ao carregar detalhes: ' + data.error);
-                                searchResultsDiv.innerHTML = ''; // Limpa o carregando
+                                searchResultsDiv.innerHTML = '';
                                 return;
                             }
-                            // Preenche os campos do formulário principal
                             imdbIdInput.value = imdbID;
                             titleInput.value = data.title || '';
                             directorInput.value = data.director || '';
@@ -164,14 +166,20 @@
                             plotTextInput.value = data.plot || '';
                             posterUrlInput.value = data.poster || '';
 
-                            // Limpa os resultados da busca e o campo de busca
                             searchResultsDiv.innerHTML = '';
                             searchTitleInput.value = '';
                             searchYearInput.value = '';
 
-                            // Foca no campo de nota ou data
                             ratingInput.focus();
-                            alert('Informações do filme preenchidas! Agora insira sua nota, data e observação.');
+                            alert('Informações do filme preenchidas! Agora insira sua nota, data e observação, ou altere o status para "Para Ver".');
+
+                            if (statusInput.value !== 'para_ver' && !watchedDateInput.value) {
+                                const today = new Date();
+                                const dd = String(today.getDate()).padStart(2, '0');
+                                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                                const yyyy = today.getFullYear(); // Corrigida a variável
+                                watchedDateInput.value = `${yyyy}-${mm}-${dd}`;
+                            }
 
                         })
                         .catch(error => {
@@ -181,59 +189,50 @@
                 }
             });
 
-            // Preencher a data atual por padrão (opcional)
-            // Apenas se o campo de data não estiver pré-preenchido por movie_data E o status não for 'para_ver'
-            // O nome da variável 'yyyy' no seu código JS original estava com erro, corrigido para 'year' ou 'currentYear'
-            const currentYear = new Date().getFullYear(); // Definir yyyy corretamente
-            if (!watchedDateInput.value && statusInput.value !== 'para_ver') {
-                const today = new Date();
-                const dd = String(today.getDate()).padStart(2, '0');
-                const mm = String(today.getMonth() + 1).padStart(2, '0');
-                const yyyy = today.getFullYear();
-                watchedDateInput.value = `${yyyy}-${mm}-${dd}`;
-            }
-
-            // Esconder/Mostrar campos com base no status do filme
-            // Função para alternar visibilidade e required
             function toggleFieldsVisibility() {
                 if (statusInput.value === 'para_ver') {
-                    // Esconder e remover required
-                    ratingInput.value = ''; // Limpa a nota
-                    watchedDateInput.value = ''; // Limpa a data
-                    watchedByInput.value = ''; // Limpa quem assistiu (se for "para ver", não faz sentido)
+                    ratingInput.value = '';
+                    watchedDateInput.value = '';
+                    watchedByInput.value = '';
+                    
                     ratingInput.removeAttribute('required');
                     watchedDateInput.removeAttribute('required');
                     watchedByInput.removeAttribute('required');
 
-                    ratingInput.closest('.form-group').style.display = 'none';
-                    watchedDateInput.closest('.form-group').style.display = 'none';
-                    watchedByInput.closest('.form-group').style.display = 'none';
+                    ratingGroup.style.display = 'none';
+                    watchedDateGroup.style.display = 'none';
+                    watchedByGroup.style.display = 'none';
                 } else {
-                    // Mostrar e adicionar required
-                    ratingInput.setAttribute('required', 'required'); // Adiciona required para nota
+                    ratingInput.setAttribute('required', 'required');
                     watchedDateInput.setAttribute('required', 'required');
                     watchedByInput.setAttribute('required', 'required');
 
-                    ratingInput.closest('.form-group').style.display = 'block';
-                    watchedDateInput.closest('.form-group').style.display = 'block';
-                    watchedByInput.closest('.form-group').style.display = 'block';
+                    ratingGroup.style.display = 'block';
+                    watchedDateGroup.style.display = 'block';
+                    watchedByGroup.style.display = 'block';
                     
-                    // Se a data estiver vazia, preenche com a data atual
                     if (!watchedDateInput.value) {
                         const today = new Date();
                         const dd = String(today.getDate()).padStart(2, '0');
                         const mm = String(today.getMonth() + 1).padStart(2, '0');
-                        const yyyy = today.getFullYear();
+                        const yyyy = today.getFullYear(); // Corrigida a variável
                         watchedDateInput.value = `${yyyy}-${mm}-${dd}`;
                     }
                 }
             }
 
-            // Adicionar listener para mudança no status
             statusInput.addEventListener('change', toggleFieldsVisibility);
-
-            // Chamar a função no carregamento inicial da página para o estado atual
             toggleFieldsVisibility();
+
+            // Preencher a data atual por padrão no carregamento inicial se o status não for 'para_ver'
+            if (statusInput.value !== 'para_ver' && !watchedDateInput.value) {
+                const today = new Date();
+                const dd = String(today.getDate()).padStart(2, '0');
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const yyyy = today.getFullYear(); // Corrigida a variável
+                watchedDateInput.value = `${yyyy}-${mm}-${dd}`;
+            }
+
         });
     </script>
 {% endblock %}

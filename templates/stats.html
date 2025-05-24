@@ -24,7 +24,10 @@
             {% if top_genres %}
                 <ul class="stats-list">
                     {% for genre, count in top_genres %}
-                        <li>{{ genre }} ({{ count }} filmes)</li>
+                        <li>
+                            <span>{{ genre }}</span>
+                            <span>{{ count }} filmes</span>
+                        </li>
                     {% endfor %}
                 </ul>
             {% else %}
@@ -37,7 +40,10 @@
             {% if movies_by_user %}
                 <ul class="stats-list">
                     {% for user, count in movies_by_user %}
-                        <li>{{ user.capitalize() }}: {{ count }} filmes</li>
+                        <li>
+                            <span>{{ user.capitalize() }}</span>
+                            <span>{{ count }} filmes</span>
+                        </li>
                     {% endfor %}
                 </ul>
             {% else %}
@@ -46,11 +52,13 @@
         </div>
 
         <div class="stats-section">
-            <h3><i class="fas fa-history"></i> Filmes Mais Recentes Assistidos</h3>
+            <h3><i class="fas fa-history"></i> Últimos Filmes Assistidos</h3>
             {% if recent_movies %}
                 <ul class="stats-list">
                     {% for movie in recent_movies %}
-                        <li>{{ movie.title }} ({{ movie.watched_date.strftime('%d/%m/%Y') }}) - Nota: {{ '%.1f' | format(movie.rating) }}</li>
+                        <li>
+                            <span>{{ movie.title }} ({{ movie.watched_date.strftime('%d/%m/%Y') }}) - Nota: {% if movie.rating is not none %}{{ '%.1f' | format(movie.rating) }}{% else %}N/A{% endif %}</span>
+                        </li>
                     {% endfor %}
                 </ul>
             {% else %}

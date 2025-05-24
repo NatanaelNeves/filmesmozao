@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nosso Diário de Filmes</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    {# ESTA É A LINHA QUE VOCÊ DEVE USAR PARA O FONT AWESOME GRATUITO #}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}" type="image/png">
 </head>
@@ -17,7 +16,7 @@
                 {% if current_user.is_authenticated %}
                     <span>Olá, {{ current_user.username.capitalize() }}!</span>
                     <a href="{{ url_for('index') }}" class="button-logout" style="margin-right: 10px;"><i class="fas fa-film"></i> Meus Filmes</a>
-                    <a href="{{ url_for('stats') }}" class="button-logout" style="margin-right: 10px;"><i class="fas fa-chart-pie"></i> Estatísticas</a> {# NOVO LINK #}
+                    <a href="{{ url_for('stats') }}" class="button-logout" style="margin-right: 10px;"><i class="fas fa-chart-pie"></i> Estatísticas</a>
                     <a href="{{ url_for('logout') }}" class="button-logout"><i class="fas fa-sign-out-alt"></i> Sair</a>
                 {% else %}
                     <a href="{{ url_for('login') }}" class="button-logout"><i class="fas fa-sign-in-alt"></i> Entrar</a>
@@ -44,62 +43,55 @@
         <p>&copy; {{ now.year }} Nosso Diário de Filmes - Feito com <i class="fas fa-heart" style="color: #ffcccc;"></i></p>
     </footer>
 
-    {# COLOQUE O ESTILO E O SCRIPT AQUI, NO FINAL DO BODY #}
+    {# ESTILO E SCRIPT DO OLHINHO AQUI #}
     <style>
         /* Estilos para o olho de mostrar/esconder senha */
         .form-group.password-group {
-            position: relative; /* FUNDAMENTAL para o posicionamento absoluto do ícone */
-            /* NOVO: Usar flexbox para alinhar label, input e ícone */
+            position: relative;
             display: flex;
             flex-direction: column;
-            align-items: flex-start; /* Alinha os itens ao início (esquerda) */
+            align-items: flex-start;
         }
 
         .form-group.password-group input[type="password"],
         .form-group.password-group input[type="text"] {
-            padding-right: 45px; /* Mais espaço para o ícone */
-            width: 100%; /* Garante que ocupe a largura total disponível */
-            box-sizing: border-box; /* Garante que padding e border não aumentem a largura */
+            padding-right: 45px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .toggle-password {
             position: absolute;
-            right: 15px; /* Distância da borda direita */
-            top: 50%; /* Alinha ao centro da altura do input */
-            /* Ajuste vertical: `transform` move o ícone para compensar a altura da label e input */
-            transform: translateY(10px); /* Ajuste este valor se o ícone ainda não estiver centralizado verticalmente no input */
+            right: 15px;
+            top: 50%;
+            transform: translateY(10px); /* Ajuste este valor se necessário */
             cursor: pointer;
             color: var(--primary-color);
             font-size: 1.1em;
             transition: color 0.2s ease;
-            z-index: 2; /* Garante que o ícone esteja acima do input */
+            z-index: 2;
         }
 
         .toggle-password:hover {
-            color: #e07b7b; /* Cor mais escura no hover, similar ao button-logout */
+            color: #e07b7b;
         }
 
-        /* Ajuste para telas menores se precisar */
         @media (max-width: 768px) {
             .toggle-password {
-                right: 10px; /* Reduz um pouco em telas menores */
+                right: 10px;
             }
         }
     </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Verifica se o campo de senha e o toggle existem na página atual
             const togglePassword = document.getElementById('togglePassword');
             const passwordInput = document.getElementById('password');
 
             if (togglePassword && passwordInput) {
                 togglePassword.addEventListener('click', function() {
-                    // Alterna o tipo do input
                     const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                     passwordInput.setAttribute('type', type);
-
-                    // Alterna o ícone (olho aberto / olho fechado)
                     this.classList.toggle('fa-eye');
                     this.classList.toggle('fa-eye-slash');
                 });

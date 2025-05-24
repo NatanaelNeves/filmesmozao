@@ -25,12 +25,15 @@
                     </select>
                 </div>
 
-                <div class="filter-group">
-                    <label for="filter_status">Status:</label> {# NOVO CAMPO DE FILTRO #}
+                <div class="filter-group"> {# NOVO FILTRO: Status #}
+                    <label for="filter_status">Status:</label>
                     <select id="filter_status" name="filter_status">
                         <option value="all" {% if current_filter_status == 'all' or not current_filter_status %}selected{% endif %}>Todos os Status</option>
-                        <option value="assistido" {% if current_filter_status == 'assistido' %}selected{% endif %}>Assistidos</option>
-                        <option value="para_ver" {% if current_filter_status == 'para_ver' %}selected{% endif %}>Para Ver</option>
+                        {% for status in movie_statuses %} {# movie_statuses vem do app.py #}
+                            <option value="{{ status }}" {% if current_filter_status == status %}selected{% endif %}>
+                                {{ status.replace('_', ' ').capitalize() }} {# Para exibir "Assistido", "Para Ver" #}
+                            </option>
+                        {% endfor %}
                     </select>
                 </div>
 
@@ -63,30 +66,41 @@
                         {% if movie.poster %}
                             <div class="movie-poster-container">
                                 <img src="{{ movie.poster }}" alt="Pôster de {{ movie.title }}" class="movie-poster">
-                                <span class="rating-badge">{{ '%.1f' | format(movie.rating) }} <i class="fas fa-star"></i></span>
+                                {% if movie.status == 'assistido' and movie.rating is not none %} {# Exibe nota apenas se assistido e tiver nota #}
+                                    <span class="rating-badge">{{ '%.1f' | format(movie.rating) }} <i class="fas fa-star"></i></span>
+                                {% endif %}
                             </div>
                         {% else %}
                             <div class="movie-poster-container">
                                 <img src="{{ url_for('static', filename='images/placeholder.png') }}" alt="Pôster não disponível" class="movie-poster">
-                                <span class="rating-badge">{{ '%.1f' | format(movie.rating) }} <i class="fas fa-star"></i></span>
+                                {% if movie.status == 'assistido' and movie.rating is not none %}
+                                    <span class="rating-badge">{{ '%.1f' | format(movie.rating) }} <i class="fas fa-star"></i></span>
+                                {% endif %}
                             </div>
                         {% endif %}
                         <h3><i class="fas fa-video"></i> {{ movie.title }}</h3>
                         <p><strong>Diretor:</strong> {{ movie.director }}</p>
                         <p><strong>Ano:</strong> {{ movie.year }}</p>
                         <p><strong>Gênero:</strong> {{ movie.genre }}</p>
+                        
                         {% if movie.status == 'assistido' %}
+                            {% if movie.rating is not none %}
+                                <p><strong>Sua Nota:</strong> <span style="font-weight: bold; color: var(--primary-color);">{{ '%.1f' | format(movie.rating) }}</span> / 10 <i class="fas fa-star" style="color: gold;"></i></p>
+                            {% else %}
+                                <p><strong>Sua Nota:</strong> N/A</p> {# Se assistido mas sem nota #}
+                            {% endif %}
                             <p><strong>Assistido em:</strong> {{ movie.watched_date.strftime('%d/%m/%Y') }}</p>
-                        {% else %}
+                        {% else %} {# movie.status == 'para_ver' #}
                             <p class="status-para-ver"><i class="fas fa-bookmark"></i> **Para Ver!**</p> {# Exibe status para filmes 'para_ver' #}
                         {% endif %}
+
                         {% if movie.comments %}
                             <p><strong>Comentários:</strong> {{ movie.comments }}</p>
                         {% endif %}
                         {% if movie.plot %}
                             <p><strong>Sinopse:</strong> {{ movie.plot }}</p>
                         {% endif %}
-                        <p class="watched-by">Registrado por: {{ movie.watched_by }}</p>
+                        <p class="watched-by">Registrado por: {{ movie.watched_by }}</p> {# Mover para fora do bloco IF/ELSE para sempre aparecer #}
 
                         <div class="actions">
                             <a href="{{ url_for('edit_movie', movie_id=movie.id) }}" class="button-action-card">

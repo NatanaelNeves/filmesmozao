@@ -1,4 +1,4 @@
-# app.py (COMPLETO E ATUALIZADO)
+# app.py (COMPLETO E FINAL)
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
@@ -48,9 +48,9 @@ class Movie(db.Model):
     year = db.Column(db.Integer, nullable=False)
     genre = db.Column(db.String(50), nullable=False)
     rating = db.Column(db.Float, nullable=True) # AGORA É OPCIONAL (nullable=True)
-    watched_date = db.Column(db.Date, nullable=False)
+    watched_date = db.Column(db.Date, nullable=True) # Data assistida agora é opcional também
     comments = db.Column(db.Text)
-    watched_by = db.Column(db.String(100), nullable=False)
+    watched_by = db.Column(db.String(100), nullable=True) # Quem assistiu agora é opcional
     status = db.Column(db.String(20), nullable=False, default='assistido') # 'assistido' ou 'para_ver'
 
     plot = db.Column(db.Text)
@@ -114,15 +114,14 @@ with app.app_context():
     db.create_all()
 
     # Adiciona usuários iniciais (se não existirem)
-    # AS CORREÇÕES ESTÃO AQUI: .encode('utf-8') adicionado
-    password_hash_voce = os.environ.get('PASSWORD_HASH_VOCE', hashlib.sha256("senha_dev_voce".encode('utf-8')).hexdigest()) # CORRIGIDO!
+    password_hash_voce = os.environ.get('PASSWORD_HASH_VOCE', hashlib.sha256("senha_dev_voce".encode('utf-8')).hexdigest())
     if not User.query.filter_by(username='voce').first():
         new_user = User(username='voce', password_hash=password_hash_voce)
         db.session.add(new_user)
         db.session.commit()
         print("Usuário 'voce' criado.")
 
-    password_hash_namorada = os.environ.get('PASSWORD_HASH_NAMORADA', hashlib.sha256("senha_dev_namorada".encode('utf-8')).hexdigest()) # CORRIGIDO!
+    password_hash_namorada = os.environ.get('PASSWORD_HASH_NAMORADA', hashlib.sha256("senha_dev_namorada".encode('utf-8')).hexdigest())
     if not User.query.filter_by(username='namorada').first():
         new_user = User(username='namorada', password_hash=password_hash_namorada)
         db.session.add(new_user)
@@ -317,8 +316,19 @@ def add_movie():
         watched_by = request.form.get('watched_by')
         status = request.form.get('status', 'assistido')
 
-        if not title or not director or not year or not genre  or not watched_date_str:
-            flash('Por favor, preencha todos os campos obrigatórios (Título, Diretor, Ano, Gênero, Data).', 'danger')
+        # Ajuste na validação: watched_date e watched_by só são obrigatórios se status for 'assistido'
+        if status == 'assistido' and (not watched_date_str or not watched_by):
+            flash('Para filmes "Assistidos", a Data e Quem Assistiu são obrigatórios.', 'danger')
+            return render_template('add_movie.html', movie_data={
+                'title': title, 'director': director, 'year': year, 'genre': genre,
+                'rating': rating_str, 'watched_date': watched_date_str, 'comments': comments,
+                'watched_by': watched_by, 'plot': plot, 'poster': poster, 'imdbID': imdb_id,
+                'status': status
+            })
+        
+        # Campos principais obrigatórios (independentemente do status)
+        if not title or not director or not year or not genre:
+            flash('Por favor, preencha Título, Diretor, Ano e Gênero.', 'danger')
             return render_template('add_movie.html', movie_data={
                 'title': title, 'director': director, 'year': year, 'genre': genre,
                 'rating': rating_str, 'watched_date': watched_date_str, 'comments': comments,
@@ -326,16 +336,18 @@ def add_movie():
                 'status': status
             })
 
-        try:
-            watched_date = datetime.strptime(watched_date_str, '%Y-%m-%d').date()
-        except ValueError:
-            flash('Formato de data inválido. Use AAAA-MM-DD.', 'danger')
-            return render_template('add_movie.html', movie_data={
-                'title': title, 'director': director, 'year': year, 'genre': genre,
-                'rating': rating_str, 'watched_date': watched_date_str, 'comments': comments,
-                'watched_by': watched_by, 'plot': plot, 'poster': poster, 'imdbID': imdb_id,
-                'status': status
-            })
+        watched_date = None
+        if watched_date_str:
+            try:
+                watched_date = datetime.strptime(watched_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                flash('Formato de data inválido. Use AAAA-MM-DD.', 'danger')
+                return render_template('add_movie.html', movie_data={
+                    'title': title, 'director': director, 'year': year, 'genre': genre,
+                    'rating': rating_str, 'watched_date': watched_date_str, 'comments': comments,
+                    'watched_by': watched_by, 'plot': plot, 'poster': poster, 'imdbID': imdb_id,
+                    'status': status
+                })
 
         new_movie = Movie(
             title=title,
@@ -382,23 +394,31 @@ def edit_movie(movie_id):
         else:
             movie.rating = None
 
-        watched_date_str = request.form['watched_date']
-        movie.comments = request.form.get('comments', '')
-        movie.watched_by = request.form['watched_by']
+        watched_date_str = request.form.get('watched_date') # Use .get()
+        comments = request.form.get('comments', '')
+        watched_by = request.form.get('watched_by') # Use .get()
         movie.plot = request.form.get('plot', '')
         movie.poster = request.form.get('poster', url_for('static', filename='images/placeholder.png'))
         movie.imdbID = request.form.get('imdb_id')
         movie.status = request.form.get('status', 'assistido')
 
-        if not movie.title or not movie.director or not movie.year or not movie.genre or not watched_date_str:
-            flash('Por favor, preencha todos os campos obrigatórios (Título, Diretor, Ano, Gênero, Data).', 'danger')
+        # Ajuste na validação para edição: watched_date e watched_by só obrigatórios se status for 'assistido'
+        if movie.status == 'assistido' and (not watched_date_str or not watched_by):
+            flash('Para filmes "Assistidos", a Data e Quem Assistiu são obrigatórios.', 'danger')
             return render_template('edit_movie.html', movie=movie)
 
-        try:
-            movie.watched_date = datetime.strptime(watched_date_str, '%Y-%m-%d').date()
-        except ValueError:
-            flash('Formato de data inválido. Use AAAA-MM-DD.', 'danger')
+        # Campos principais obrigatórios (independentemente do status)
+        if not movie.title or not movie.director or not movie.year or not movie.genre:
+            flash('Por favor, preencha Título, Diretor, Ano e Gênero.', 'danger')
             return render_template('edit_movie.html', movie=movie)
+
+        movie.watched_date = None # Resetar para evitar problemas se o status mudar para 'para_ver'
+        if watched_date_str:
+            try:
+                movie.watched_date = datetime.strptime(watched_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                flash('Formato de data inválido. Use AAAA-MM-DD.', 'danger')
+                return render_template('edit_movie.html', movie=movie)
 
         db.session.commit()
         flash('Filme atualizado com sucesso!', 'success')
@@ -418,9 +438,8 @@ def delete_movie(movie_id):
 @app.route('/stats')
 @login_required
 def stats():
-    total_movies = db.session.query(Movie).filter_by(status='assistido').count()
-
-    total_to_watch = db.session.query(Movie).filter_by(status='para_ver').count()
+    total_movies_assistidos = db.session.query(Movie).filter_by(status='assistido').count()
+    total_movies_para_ver = db.session.query(Movie).filter_by(status='para_ver').count()
 
     avg_rating_result = db.session.query(func.avg(Movie.rating))\
                                .filter(Movie.status=='assistido', Movie.rating.isnot(None))\
@@ -445,8 +464,8 @@ def stats():
                               .limit(5).all()
 
     return render_template('stats.html',
-                           total_movies=total_movies,
-                           total_to_watch=total_to_watch,
+                           total_movies=total_movies_assistidos, # Passa o total de assistidos aqui
+                           total_to_watch=total_movies_para_ver, # Passa o total de para ver
                            avg_rating=avg_rating,
                            top_genres=top_genres,
                            movies_by_user=movies_by_user,

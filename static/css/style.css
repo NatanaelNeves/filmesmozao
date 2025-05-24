@@ -82,7 +82,7 @@ header nav span {
 }
 
 /* --- Forms (Adicionar Filme / Login) --- */
-.add-movie-section, .login-container, .movie-list-section {
+.add-movie-section, .login-container, .movie-list-section, .stats-section { /* Adicionado .stats-section aqui */
     background-color: var(--card-background);
     padding: 30px;
     border-radius: 15px;
@@ -91,7 +91,7 @@ header nav span {
     margin-bottom: 30px;
     border: 1px solid var(--border-color);
 }
-.add-movie-section:hover, .login-container:hover, .movie-list-section:hover {
+.add-movie-section:hover, .login-container:hover, .movie-list-section:hover, .stats-section:hover {
     box-shadow: 0 12px 25px var(--hover-shadow); /* Sombra mais pronunciada no hover */
 }
 
@@ -175,11 +175,6 @@ h3 {
     color: var(--text-color);
     text-align: left; /* GARANTE QUE A LABEL FIQUE À ESQUERDA */
 }
-
-/* O código .password-container que você tinha no style.css era uma tentativa de corrigir,
-   mas a solução foi movida e aprimorada para o base.html no bloco <style> */
-/* POR FAVOR, REMOVA O BLOCO .password-container DO SEU style.css para evitar conflitos */
-
 
 .form-group input[type="text"],
 .form-group input[type="number"],
@@ -443,6 +438,11 @@ h3 {
     color: var(--info-color); /* Azul claro */
     font-style: normal;
     font-size: 1em;
+    padding: 5px 10px; /* Adicionado padding */
+    background-color: var(--accent-color); /* Usar uma cor accent mais suave ou similar */
+    border-radius: 5px; /* Adicionado borda arredondada */
+    margin-top: 10px; /* Espaçamento */
+    display: inline-block; /* Para que padding e arredondamento funcionem */
 }
 .movie-card .status-para-ver i {
     margin-right: 5px;
