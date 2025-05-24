@@ -2,20 +2,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --primary-color: #ff6f61; /* Cor rosa/vermelha para romance */
-    --secondary-color: #f7a9a8; /* Um rosa mais claro */
-    --background-color: #fce4ec; /* Um rosa bebê bem clarinho */
+    --primary-color: #ff6f61;
+    --secondary-color: #f7a9a8;
+    --background-color: #fce4ec;
     --text-color: #333;
     --card-background: #ffffff;
-    --border-color: #ffb6c1; /* Rosa claro para bordas */
+    --border-color: #ffb6c1;
     --success-color: #4CAF50;
     --danger-color: #f44336;
     --info-color: #2196F3;
     --warning-color: #ff9800;
-    --shadow-color: rgba(255, 105, 180, 0.2); /* Rosa mais suave para sombra */
-    --hover-shadow: rgba(255, 105, 180, 0.35); /* Sombra mais intensa no hover */
-    /* Se você usar --light-text-color em outros lugares, defina-a aqui. Ex: */
-    /* --light-text-color: #777; */
+    --shadow-color: rgba(255, 105, 180, 0.2);
+    --hover-shadow: rgba(255, 105, 180, 0.35);
+    --light-text-color: #777; /* << ADICIONE ESTA LINHA (escolha uma cor cinza claro, por exemplo) */
 }
 
 body {
@@ -155,16 +154,17 @@ h2 i, h3 i {
 
 h3 {
     color: var(--primary-color);
-    font-family: 'Quicksand', sans-serif;
+    font-family: 'Quicksand', sans-serif; /* Certifique-se que é Quicksand e não Pacifico para h3 */
     font-size: 1.5em;
     margin-top: 0;
     margin-bottom: 20px;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    text-align: center; /* Garante que o bloco de texto h3 seja centralizado se o conteúdo quebrar linha */
+    display: flex;       /* Para alinhar ícones e texto dentro do h3 */
+    align-items: center; /* Alinha verticalmente ícones e texto */
+    justify-content: center; /* Centraliza horizontalmente ícones e texto */
     gap: 10px;
 }
+
 
 .form-group {
     margin-bottom: 15px;
@@ -660,10 +660,11 @@ h3 {
 /* .stats-section já definido no início junto com .add-movie-section etc. */
 /* .stats-section { ... } */
 
-.stats-section h3 { /* H3 dentro da seção de estatísticas (não o H3 do stat-card individual) */
-    text-align: left; /* Diferente do H3 padrão */
-    margin-bottom: 20px;
-    /* display:flex, gap etc já são do H3 geral, verificar se precisa de override */
+.stats-section h3 {
+    /* text-align: left; */  /* COMENTE OU REMOVA ESTA LINHA se quiser os títulos dos gráficos centralizados */
+                            /* Se outros h3 em .stats-section precisarem ser à esquerda, use uma classe mais específica para eles. */
+    margin-bottom: 20px; /* Espaçamento abaixo do título, antes do gráfico ou lista */
+    /* display:flex, gap etc já são do H3 geral e devem ser herdados aqui, a menos que queira sobrescrever */
 }
 .stats-section h3 i {
     color: var(--secondary-color);
