@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="stats-section">
-    <h2><i class="fas fa-chart-pie"></i> Nossas Estatísticas Cinematográficas <i class="fas fa-chart-bar"></i></h2>
+<div class="stats-section"> <h2><i class="fas fa-chart-pie"></i> Nossas Estatísticas Cinematográficas <i class="fas fa-chart-bar"></i></h2>
 
     <div class="stats-grid">
         <div class="stat-card">
@@ -19,23 +18,20 @@
         </div>
     </div>
 
-    <!-- Gráfico de Gêneros -->
     <div class="stats-section">
         <h3><i class="fas fa-chart-line"></i> Distribuição de Gêneros</h3>
         <div class="chart-container">
             <canvas id="genreChart"></canvas>
-        </div>
+            </div>
     </div>
 
-    <!-- Gráfico de Filmes por Usuário -->
     <div class="stats-section">
         <h3><i class="fas fa-users"></i> Filmes por Usuário</h3>
         <div class="chart-container">
             <canvas id="userChart"></canvas>
-        </div>
+            </div>
     </div>
 
-    <!-- Top Gêneros -->
     <div class="stats-section">
         <h3><i class="fas fa-tags"></i> Top 5 Gêneros Assistidos</h3>
         {% if top_genres %}
@@ -48,11 +44,10 @@
                 {% endfor %}
             </ul>
         {% else %}
-            <p>Nenhum gênero registrado ainda.</p>
+            <p>Nenhum filme assistido para gerar top gêneros.</p>
         {% endif %}
     </div>
 
-    <!-- Filmes por Usuário Lista -->
     <div class="stats-section">
         <h3><i class="fas fa-users"></i> Filmes Registrados por Usuário (Lista)</h3>
         {% if movies_by_user %}
@@ -69,14 +64,13 @@
         {% endif %}
     </div>
 
-    <!-- Últimos Filmes Assistidos -->
     <div class="stats-section">
         <h3><i class="fas fa-history"></i> Últimos Filmes Assistidos</h3>
         {% if recent_movies %}
             <ul class="stats-list">
                 {% for movie in recent_movies %}
                     <li>
-                        <span>{{ movie.title }} ({{ movie.watched_date.strftime('%d/%m/%Y') }}) - Nota: {% if movie.rating is not none %}{{ '%.1f' | format(movie.rating) }}{% else %}N/A{% endif %}</span>
+                        <span>{{ movie.title }} ({{ movie.watched_date.strftime('%d/%m/%Y') if movie.watched_date else 'Data não informada' }}) - Nota: {% if movie.rating is not none %}{{ '%.1f' | format(movie.rating) }}{% else %}N/A{% endif %}</span>
                     </li>
                 {% endfor %}
             </ul>
@@ -92,102 +86,169 @@
     </div>
 </div>
 
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const topGenres = JSON.parse('{{ top_genres | tojson | safe }}');
-    const moviesByUser = JSON.parse('{{ movies_by_user | tojson | safe }}');
+    console.log("DOM Carregado. Preparando gráficos...");
 
-    const genreLabels = topGenres.map(item => item[0]);
-    const genreData = topGenres.map(item => item[1]);
+    // Tenta parsear os dados do Flask. Se forem None no Flask, tojson | safe resultará em 'null'.
+    const rawTopGenres = '{{ top_genres | tojson | safe }}';
+    const rawMoviesByUser = '{{ movies_by_user | tojson | safe }}';
 
-    const userLabels = moviesByUser.map(item => item[0].charAt(0).toUpperCase() + item[0].slice(1));
-    const userData = moviesByUser.map(item => item[1]);
+    let topGenres = null;
+    let moviesByUser = null;
+
+    try {
+        topGenres = JSON.parse(rawTopGenres);
+    } catch (e) {
+        console.error("Erro ao parsear top_genres JSON:", e, "String JSON:", rawTopGenres);
+        topGenres = []; // Define como array vazio em caso de erro de parse
+    }
+
+    try {
+        moviesByUser = JSON.parse(rawMoviesByUser);
+    } catch (e) {
+        console.error("Erro ao parsear movies_by_user JSON:", e, "String JSON:", rawMoviesByUser);
+        moviesByUser = []; // Define como array vazio em caso de erro de parse
+    }
+
+    // Garante que são arrays antes de usar .map (JSON.parse('null') resulta em null, não array)
+    const genreLabels = (Array.isArray(topGenres) && topGenres.length > 0) ? topGenres.map(item => item[0]) : [];
+    const genreData = (Array.isArray(topGenres) && topGenres.length > 0) ? topGenres.map(item => item[1]) : [];
+
+    const userLabels = (Array.isArray(moviesByUser) && moviesByUser.length > 0) ? moviesByUser.map(item => item[0].charAt(0).toUpperCase() + item[0].slice(1)) : [];
+    const userData = (Array.isArray(moviesByUser) && moviesByUser.length > 0) ? moviesByUser.map(item => item[1]) : [];
+
+    console.log("Dados para gráfico de gêneros:", { labels: genreLabels, data: genreData });
+    console.log("Dados para gráfico de usuários:", { labels: userLabels, data: userData });
 
     const pastelColors = [
-        '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9', '#BAE1FF',
-        '#D7BAFF', '#FFC3F1', '#C3FFD9', '#FFBABA', '#BAF3FF'
+        'rgba(255, 182, 193, 0.8)', // LightPink
+        'rgba(173, 216, 230, 0.8)', // LightBlue
+        'rgba(255, 223, 186, 0.8)', // Peach
+        'rgba(144, 238, 144, 0.8)', // LightGreen
+        'rgba(221, 160, 221, 0.8)', // Plum
+        'rgba(255, 255, 224, 0.8)', // LightYellow
+        'rgba(250, 128, 114, 0.8)', // Salmon
+        'rgba(200, 200, 250, 0.8)'  // LightPurple
     ];
+    const borderColors = [ // Cores de borda correspondentes ou um pouco mais escuras
+        'rgba(255, 99, 132, 1)',
+        'rgba(54, 162, 235, 1)',
+        'rgba(255, 159, 64, 1)',
+        'rgba(75, 192, 192, 1)',
+        'rgba(153, 102, 255, 1)',
+        'rgba(204, 204, 0, 1)',
+        'rgba(233, 79, 59, 1)',
+        'rgba(120, 120, 220, 1)'
+    ];
+
 
     // 🎨 Gráfico de Distribuição de Gêneros (Pizza)
     const genreChartCanvas = document.getElementById('genreChart');
-    if (genreChartCanvas && genreLabels.length > 0) {
-        const genreCtx = genreChartCanvas.getContext('2d');
-        new Chart(genreCtx, {
-            type: 'pie',
-            data: {
-                labels: genreLabels,
-                datasets: [{
-                    data: genreData,
-                    backgroundColor: pastelColors,
-                    borderColor: '#ffffff',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: 'var(--light-text-color)'
+    if (genreChartCanvas) { // Verifica se o elemento canvas existe
+        if (genreLabels.length > 0 && genreData.length > 0) {
+            console.log("Renderizando gráfico de gêneros.");
+            const genreCtx = genreChartCanvas.getContext('2d');
+            new Chart(genreCtx, {
+                type: 'pie',
+                data: {
+                    labels: genreLabels,
+                    datasets: [{
+                        data: genreData,
+                        backgroundColor: pastelColors.slice(0, genreLabels.length), // Usa apenas as cores necessárias
+                        borderColor: borderColors.slice(0, genreLabels.length),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { family: 'Quicksand', size: 12 }, // Ajuste o tamanho da fonte se necessário
+                                color: 'var(--text-color)' // Usando sua variável CSS
+                            }
+                        },
+                        tooltip: {
+                            bodyFont: { family: 'Quicksand' },
+                            titleFont: { family: 'Quicksand' }
                         }
                     }
                 }
-            }
-        });
-        } else if (genreChartCanvas) {
+            });
+        } else {
+            console.log("Sem dados para o gráfico de gêneros. Exibindo mensagem.");
             const p = document.createElement('p');
-            p.textContent = 'Adicione filmes assistidos para ver a distribuição de gêneros!';
+            p.textContent = 'Adicione filmes assistidos com gênero definido para ver a distribuição!';
             genreChartCanvas.parentNode.appendChild(p);
-            genreChartCanvas.remove();
-            }
-        });
-    </script>
+            genreChartCanvas.remove(); // Remove o canvas se não houver dados
+        }
+    } else {
+        console.warn("Elemento canvas 'genreChart' não encontrado.");
+    }
 
     // 🎨 Gráfico de Filmes por Usuário (Barras)
     const userChartCanvas = document.getElementById('userChart');
-    if (userChartCanvas && userLabels.length > 0) {
-        const userCtx = userChartCanvas.getContext('2d');
-        new Chart(userCtx, {
-            type: 'bar',
-            data: {
-                labels: userLabels,
-                datasets: [{
-                    label: 'Filmes assistidos',
-                    data: userData,
-                    backgroundColor: pastelColors,
-                    borderColor: '#ffffff',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                scales: {
-                    x: {
-                        ticks: {
-                            color: 'var(--light-text-color)'
+    if (userChartCanvas) { // Verifica se o elemento canvas existe
+        if (userLabels.length > 0 && userData.length > 0) {
+            console.log("Renderizando gráfico de usuários.");
+            const userCtx = userChartCanvas.getContext('2d');
+            new Chart(userCtx, {
+                type: 'bar',
+                data: {
+                    labels: userLabels,
+                    datasets: [{
+                        label: 'Filmes assistidos',
+                        data: userData,
+                        backgroundColor: pastelColors.slice(0, userLabels.length),
+                        borderColor: borderColors.slice(0, userLabels.length),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: 'var(--text-color)', // Usando sua variável CSS
+                                font: { family: 'Quicksand' }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: 'var(--text-color)',
+                                font: { family: 'Quicksand' },
+                                callback: function(value) { if (Number.isInteger(value)) return value; } // Mostra apenas inteiros
+                            }
                         }
                     },
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            color: 'var(--light-text-color)'
+                    plugins: {
+                        legend: {
+                            display: false // Geralmente não precisa de legenda para gráfico de barras com um dataset
+                        },
+                        tooltip: {
+                            bodyFont: { family: 'Quicksand' },
+                            titleFont: { family: 'Quicksand' }
                         }
                     }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
                 }
-            }
-        });
-    } else if (userChartCanvas) {
-        const p = document.createElement('p');
-        p.textContent = 'Adicione filmes assistidos para ver quem assistiu mais!';
-        userChartCanvas.parentNode.appendChild(p);
-        userChartCanvas.remove();
+            });
+        } else {
+            console.log("Sem dados para o gráfico de usuários. Exibindo mensagem.");
+            const p = document.createElement('p');
+            p.textContent = 'Adicione filmes assistidos para ver quem assistiu mais!';
+            userChartCanvas.parentNode.appendChild(p);
+            userChartCanvas.remove(); // Remove o canvas se não houver dados
+        }
+    } else {
+        console.warn("Elemento canvas 'userChart' não encontrado.");
     }
 });
 </script>
-{% endblock %} 
+{% endblock %}
