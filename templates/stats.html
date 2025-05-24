@@ -97,8 +97,8 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const topGenres = {{ top_genres | tojson | safe }};
-    const moviesByUser = {{ movies_by_user | tojson | safe }};
+    const topGenres = JSON.parse('{{ top_genres | tojson | safe }}');
+    const moviesByUser = JSON.parse('{{ movies_by_user | tojson | safe }}');
 
     const genreLabels = topGenres.map(item => item[0]);
     const genreData = topGenres.map(item => item[1]);
@@ -136,12 +136,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-    } else if (genreChartCanvas) {
-        const p = document.createElement('p');
-        p.textContent = 'Adicione filmes assistidos para ver a distribuição de gêneros!';
-        genreChartCanvas.parentNode.appendChild(p);
-        genreChartCanvas.remove();
-    }
+        } else if (genreChartCanvas) {
+            const p = document.createElement('p');
+            p.textContent = 'Adicione filmes assistidos para ver a distribuição de gêneros!';
+            genreChartCanvas.parentNode.appendChild(p);
+            genreChartCanvas.remove();
+            }
+        });
+    </script>
 
     // 🎨 Gráfico de Filmes por Usuário (Barras)
     const userChartCanvas = document.getElementById('userChart');
@@ -188,4 +190,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-{% endblock %}
+{% endblock %} 
