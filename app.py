@@ -446,21 +446,25 @@ def stats():
                                .scalar()
     avg_rating = round(avg_rating_result, 1) if avg_rating_result is not None else 0.0
 
-    # Top 5 gêneros assistidos (para o gráfico)
-    # Garante que 'genre' não seja None ou string vazia
-    top_genres = db.session.query(Movie.genre, func.count(Movie.genre))\
+    # Top 5 gêneros assistidos
+    top_genres_raw = db.session.query(Movie.genre, func.count(Movie.genre))\
                            .filter(Movie.status=='assistido', Movie.genre.isnot(None), Movie.genre != '')\
                            .group_by(Movie.genre)\
                            .order_by(func.count(Movie.genre).desc())\
                            .limit(5).all()
+    # CONVERSÃO AQUI: De lista de Row/tuplas para lista de listas (ou dicts)
+    top_genres = [[genre, count] for genre, count in top_genres_raw]
 
-    # Filmes assistidos por cada usuário (para o gráfico)
-    # Garante que 'watched_by' não seja None ou string vazia
-    movies_by_user = db.session.query(Movie.watched_by, func.count(Movie.watched_by))\
+
+    # Filmes assistidos por cada usuário
+    movies_by_user_raw = db.session.query(Movie.watched_by, func.count(Movie.watched_by))\
                                .filter(Movie.status=='assistido', Movie.watched_by.isnot(None), Movie.watched_by != '')\
                                .group_by(Movie.watched_by)\
                                .order_by(func.count(Movie.watched_by).desc())\
                                .all()
+    # CONVERSÃO AQUI: De lista de Row/tuplas para lista de listas (ou dicts)
+    movies_by_user = [[user, count] for user, count in movies_by_user_raw]
+
 
     recent_movies = db.session.query(Movie)\
                               .filter_by(status='assistido')\
@@ -471,10 +475,9 @@ def stats():
                            total_movies=total_movies,
                            total_to_watch=total_to_watch,
                            avg_rating=avg_rating,
-                           top_genres=top_genres,       # Passando dados para o gráfico de gêneros
-                           movies_by_user=movies_by_user, # Passando dados para o gráfico de usuários
+                           top_genres=top_genres,       # Agora é uma lista de listas Python, serializável
+                           movies_by_user=movies_by_user, # Agora é uma lista de listas Python, serializável
                            recent_movies=recent_movies)
-
 
 if __name__ == '__main__':
     app.run(debug=True)
