@@ -1,116 +1,191 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="stats-section">
+    <h2><i class="fas fa-chart-pie"></i> Nossas Estatísticas Cinematográficas <i class="fas fa-chart-bar"></i></h2>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3><i class="fas fa-film"></i> Total de Filmes Assistidos</h3>
+            <p class="stat-number">{{ total_movies }}</p>
+        </div>
+        <div class="stat-card">
+            <h3><i class="fas fa-bookmark"></i> Filmes Para Ver</h3>
+            <p class="stat-number">{{ total_to_watch }}</p>
+        </div>
+        <div class="stat-card">
+            <h3><i class="fas fa-star"></i> Nota Média</h3>
+            <p class="stat-number">{{ '%.1f' | format(avg_rating) }}</p>
+        </div>
+    </div>
+
+    <!-- Gráfico de Gêneros -->
+    <div class="stats-section">
+        <h3><i class="fas fa-chart-line"></i> Distribuição de Gêneros</h3>
+        <div class="chart-container">
+            <canvas id="genreChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Gráfico de Filmes por Usuário -->
+    <div class="stats-section">
+        <h3><i class="fas fa-users"></i> Filmes por Usuário</h3>
+        <div class="chart-container">
+            <canvas id="userChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Top Gêneros -->
+    <div class="stats-section">
+        <h3><i class="fas fa-tags"></i> Top 5 Gêneros Assistidos</h3>
+        {% if top_genres %}
+            <ul class="stats-list">
+                {% for genre, count in top_genres %}
+                    <li>
+                        <span>{{ genre }}</span>
+                        <span>{{ count }} filmes</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Nenhum gênero registrado ainda.</p>
+        {% endif %}
+    </div>
+
+    <!-- Filmes por Usuário Lista -->
+    <div class="stats-section">
+        <h3><i class="fas fa-users"></i> Filmes Registrados por Usuário (Lista)</h3>
+        {% if movies_by_user %}
+            <ul class="stats-list">
+                {% for user, count in movies_by_user %}
+                    <li>
+                        <span>{{ user.capitalize() }}</span>
+                        <span>{{ count }} filmes</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Nenhum filme registrado por usuário ainda.</p>
+        {% endif %}
+    </div>
+
+    <!-- Últimos Filmes Assistidos -->
+    <div class="stats-section">
+        <h3><i class="fas fa-history"></i> Últimos Filmes Assistidos</h3>
+        {% if recent_movies %}
+            <ul class="stats-list">
+                {% for movie in recent_movies %}
+                    <li>
+                        <span>{{ movie.title }} ({{ movie.watched_date.strftime('%d/%m/%Y') }}) - Nota: {% if movie.rating is not none %}{{ '%.1f' | format(movie.rating) }}{% else %}N/A{% endif %}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Nenhum filme assistido recentemente.</p>
+        {% endif %}
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{{ url_for('index') }}" class="button-logout" style="width: auto; display: inline-block;">
+            <i class="fas fa-arrow-left"></i> Voltar para a Lista de Filmes
+        </a>
+    </div>
+</div>
+
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const genreLabels = [];
-        const genreData = [];
-        const topGenres = JSON.parse('{{ top_genres | tojson | safe }}');
-        if (topGenres) {
-            topGenres.forEach(item => {
-                genreLabels.push(item[0]);
-                genreData.push(item[1]);
-            });
-        }
+document.addEventListener('DOMContentLoaded', function() {
+    const topGenres = {{ top_genres | tojson | safe }};
+    const moviesByUser = {{ movies_by_user | tojson | safe }};
 
-        const userLabels = [];
-        const userData = [];
-        const moviesByUser = JSON.parse('{{ movies_by_user | tojson | safe }}');
-        if (moviesByUser) {
-            moviesByUser.forEach(item => {
-                userLabels.push(item[0].charAt(0).toUpperCase() + item[0].slice(1));
-                userData.push(item[1]);
-            });
-        }
+    const genreLabels = topGenres.map(item => item[0]);
+    const genreData = topGenres.map(item => item[1]);
 
-        const pastelColors = [
-            '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9', '#BAE1FF',
-            '#D7BAFF', '#FFCBAE', '#C2F0C2', '#F9F9C5', '#FFD1DC'
-        ];
-        const borderColors = pastelColors.map(cor => 'rgba(0,0,0,0.2)');
+    const userLabels = moviesByUser.map(item => item[0].charAt(0).toUpperCase() + item[0].slice(1));
+    const userData = moviesByUser.map(item => item[1]);
 
-        // Gráfico de Gêneros (Pie Chart)
-        const genreChartCanvas = document.getElementById('genreChart');
-        if (genreChartCanvas && genreLabels.length > 0) {
-            const genreCtx = genreChartCanvas.getContext('2d');
-            new Chart(genreCtx, {
-                type: 'pie',
-                data: {
-                    labels: genreLabels,
-                    datasets: [{
-                        data: genreData,
-                        backgroundColor: pastelColors,
-                        borderColor: borderColors,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: getComputedStyle(document.body).getPropertyValue('--light-text-color') || '#333'
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Distribuição de Gêneros'
+    const pastelColors = [
+        '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9', '#BAE1FF',
+        '#D7BAFF', '#FFC3F1', '#C3FFD9', '#FFBABA', '#BAF3FF'
+    ];
+
+    // 🎨 Gráfico de Distribuição de Gêneros (Pizza)
+    const genreChartCanvas = document.getElementById('genreChart');
+    if (genreChartCanvas && genreLabels.length > 0) {
+        const genreCtx = genreChartCanvas.getContext('2d');
+        new Chart(genreCtx, {
+            type: 'pie',
+            data: {
+                labels: genreLabels,
+                datasets: [{
+                    data: genreData,
+                    backgroundColor: pastelColors,
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'var(--light-text-color)'
                         }
                     }
                 }
-            });
-        } else if (genreChartCanvas) {
-            const p = document.createElement('p');
-            p.textContent = 'Adicione filmes assistidos para ver a distribuição de gêneros!';
-            genreChartCanvas.parentNode.appendChild(p);
-            genreChartCanvas.remove();
-        }
+            }
+        });
+    } else if (genreChartCanvas) {
+        const p = document.createElement('p');
+        p.textContent = 'Adicione filmes assistidos para ver a distribuição de gêneros!';
+        genreChartCanvas.parentNode.appendChild(p);
+        genreChartCanvas.remove();
+    }
 
-        // Gráfico de Filmes por Usuário (Bar Chart)
-        const userChartCanvas = document.getElementById('userChart');
-        if (userChartCanvas && userLabels.length > 0) {
-            const userCtx = userChartCanvas.getContext('2d');
-            new Chart(userCtx, {
-                type: 'bar',
-                data: {
-                    labels: userLabels,
-                    datasets: [{
-                        label: 'Filmes',
-                        data: userData,
-                        backgroundColor: '#4bc0c0',
-                        borderColor: '#399',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: getComputedStyle(document.body).getPropertyValue('--light-text-color') || '#333'
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                color: getComputedStyle(document.body).getPropertyValue('--light-text-color') || '#333'
-                            }
+    // 🎨 Gráfico de Filmes por Usuário (Barras)
+    const userChartCanvas = document.getElementById('userChart');
+    if (userChartCanvas && userLabels.length > 0) {
+        const userCtx = userChartCanvas.getContext('2d');
+        new Chart(userCtx, {
+            type: 'bar',
+            data: {
+                labels: userLabels,
+                datasets: [{
+                    label: 'Filmes assistidos',
+                    data: userData,
+                    backgroundColor: pastelColors,
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        ticks: {
+                            color: 'var(--light-text-color)'
                         }
                     },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        title: {
-                            display: true,
-                            text: 'Filmes por Usuário'
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: 'var(--light-text-color)'
                         }
                     }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
                 }
-            });
-        } else if (userChartCanvas) {
-            const p = document.createElement('p');
-            p.textContent = 'Adicione filmes assistidos para ver quem assistiu mais!';
-            userChartCanvas.parentNode.appendChild(p);
-            userChartCanvas.remove();
-        }
-    });
+            }
+        });
+    } else if (userChartCanvas) {
+        const p = document.createElement('p');
+        p.textContent = 'Adicione filmes assistidos para ver quem assistiu mais!';
+        userChartCanvas.parentNode.appendChild(p);
+        userChartCanvas.remove();
+    }
+});
 </script>
+{% endblock %}
