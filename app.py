@@ -11,17 +11,18 @@ from sqlalchemy import func # Importar func para funções de agregação (AVG, 
 app = Flask(__name__)
 
 # --- Configuração da Aplicação ---
-# ATENÇÃO: PARA PRODUÇÃO NO RENDER, VOCÊ DEVE DEFINIR ESTAS VARIÁVEIS DE AMBIENTE.
-# Para desenvolvimento local, 'fallback_secret_key_dev' e 'f9692cb3' serão usados.
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'SUA_CHAVE_SECRETA_MUITO_FORTE_AQUI') # MUDAR! Gerar com os.urandom(24).hex()
-OMDB_API_KEY = os.environ.get('OMDB_API_KEY', 'f9692cb3') # Mantenha sua chave de desenvolvimento local
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'SUA_CHAVE_SECRETA_MUITO_FORTE_AQUI')
+OMDB_API_KEY = os.environ.get('OMDB_API_KEY', 'f9692cb3')
 
 # --- Configuração do banco de dados PostgreSQL (para Render) ou SQLite (para desenvolvimento local) ---
-# A variável de ambiente DATABASE_URL será fornecida pelo Render.
-# Para desenvolvimento local, ele usará sqlite:///movies.db.
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///movies.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# ADICIONE ESTA LINHA PARA CONFIGURAR AS OPÇÕES DO ENGINE:
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_recycle': 280,    # Tempo em segundos para reciclar conexões do pool
+    'pool_pre_ping': True   # Habilita o teste de "ping" na conexão antes de usá-la
+}
 db = SQLAlchemy(app)
 
 # --- Configuração do Flask-Login ---
