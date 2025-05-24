@@ -14,6 +14,8 @@
     --warning-color: #ff9800;
     --shadow-color: rgba(255, 105, 180, 0.2); /* Rosa mais suave para sombra */
     --hover-shadow: rgba(255, 105, 180, 0.35); /* Sombra mais intensa no hover */
+    /* Se você usar --light-text-color em outros lugares, defina-a aqui. Ex: */
+    /* --light-text-color: #777; */
 }
 
 body {
@@ -324,13 +326,14 @@ h3 {
     font-size: 0.95em;
 }
 
-.button-filter {
-    flex-shrink: 0; /* Impede que o botão encolha */
-    width: auto; /* Ajusta a largura ao conteúdo */
-    margin-top: 0;
-    padding: 8px 15px;
-    font-size: 1em;
-}
+/* .button-filter está combinado com .button-submit, mas aqui está a personalização específica se necessário */
+/* .button-filter { */
+    /* flex-shrink: 0; */ /* Impede que o botão encolha - já coberto por .button-submit */
+    /* width: auto; */ /* Ajusta a largura ao conteúdo - já coberto */
+    /* margin-top: 0; */ /* sobrescreve o margin-top do .button-submit se for usado no filter-form */
+    /* padding: 8px 15px; */ /* sobrescreve o padding se necessário */
+    /* font-size: 1em; */ /* sobrescreve a font-size se necessário */
+/* } */
 
 
 .movie-cards-container {
@@ -364,52 +367,52 @@ h3 {
     max-width: 250px; /* Limita a largura máxima do container do pôster */
     height: 350px; /* Altura fixa para os pôsteres */
     overflow: hidden;
-    border-bottom: 2px solid var(--secondary-color);
-    position: relative;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-    margin-bottom: 15px;
-    display: flex; /* Adiciona flexbox para centralizar a imagem */
-    justify-content: center; /* Centraliza horizontalmente */
-    align-items: center; /* Centraliza verticalmente (se a imagem for menor que o container) */
+    border-bottom: 2px solid var(--secondary-color); /* Mudado de border para border-bottom */
+    position: relative; /* Mantido */
+    border-top-left-radius: 12px; /* Adicionado para consistência com movie-card */
+    border-top-right-radius: 12px; /* Adicionado para consistência com movie-card */
+    margin-bottom: 15px; /* Adicionado espaçamento */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .movie-poster {
-    width: 100%; /* Preenche a largura do seu container */
-    height: 100%; /* Preenche a altura do seu container */
+    width: 100%;
+    height: 100%;
     object-fit: cover; /* Garante que a imagem preencha o container sem distorcer */
-    display: block;
-    border: none;
-    border-radius: 0;
+    display: block; /* Remove espaço extra abaixo da imagem */
+    border: none; /* Removido, já que o container pode ter bordas */
+    border-radius: 0; /* O poster não precisa de borda arredondada se o container já tem */
 }
 
 .movie-card h3 {
     color: var(--primary-color);
     font-family: 'Pacifico', cursive;
     font-size: 1.8em;
-    margin-top: 15px;
+    margin-top: 15px; /* Ajustado para depois do poster */
     margin-bottom: 10px;
-    text-align: center;
+    text-align: center; /* Já definido em .movie-card, mas redundância não prejudica */
 }
 
 .movie-card p {
     margin-bottom: 8px;
     font-size: 0.95em;
-    text-align: center; /* Centraliza o texto no card */
+    text-align: center; /* Já definido em .movie-card */
 }
 
 .movie-card p strong {
     color: var(--primary-color);
 }
 
-.movie-card .rating-badge { /* Novo estilo para o selo de nota */
+.movie-card .rating-badge {
     position: absolute;
-    top: 15px;
-    right: 15px;
+    top: 15px; /* Ajustado para dentro do padding do .movie-card */
+    right: 15px; /* Ajustado para dentro do padding do .movie-card */
     background-color: var(--primary-color);
     color: white;
     padding: 5px 10px;
-    border-radius: 10px;
+    border-radius: 10px; /* Pode ser ajustado para 50% para um círculo se o conteúdo for pequeno */
     font-weight: bold;
     font-size: 0.9em;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
@@ -419,30 +422,31 @@ h3 {
     z-index: 5; /* Garante que esteja acima do pôster */
 }
 .movie-card .rating-badge i {
-    color: gold;
-    font-size: 0.8em;
+    color: gold; /* Cor do ícone de estrela */
+    font-size: 0.8em; /* Tamanho do ícone de estrela */
 }
 
 .movie-card .watched-by {
     font-size: 0.85em;
     color: #888;
     margin-top: 15px;
-    text-align: right;
-    width: 100%;
-    padding-right: 10px;
+    text-align: right; /* Alinha à direita */
+    width: 100%; /* Ocupa toda a largura */
+    padding-right: 10px; /* Pequeno padding para não colar na borda */
     box-sizing: border-box;
 }
 
-.movie-card .status-para-ver { /* Estilo para filmes "para ver" */
+.movie-card .status-para-ver {
     font-weight: bold;
-    color: var(--info-color); /* Azul claro */
-    font-style: normal;
-    font-size: 1em;
+    color: var(--info-color);
+    font-style: normal; /* Era italic, mudado para normal */
+    font-size: 1em; /* Ajustado para melhor leitura */
     padding: 5px 10px;
-    background-color: var(--accent-color); /* Um azul mais suave ou similar */
+    background-color: #e1f5fe; /* Um azul bebê bem clarinho como exemplo de accent-color */
+    /* Se você tiver --accent-color definido no :root, use-o: background-color: var(--accent-color); */
     border-radius: 5px;
     margin-top: 10px;
-    display: inline-block; /* Para ter padding e arredondamento */
+    display: inline-block; /* Para padding e borda funcionarem corretamente */
 }
 .movie-card .status-para-ver i {
     margin-right: 5px;
@@ -452,13 +456,13 @@ h3 {
 /* --- Estilos para os botões de ação (Editar/Deletar) dentro do card do filme --- */
 .movie-card .actions {
     display: flex;
-    justify-content: center;
+    justify-content: center; /* Centraliza os botões */
     gap: 10px;
     margin-top: 15px;
-    width: 100%;
-    padding: 0 10px;
+    width: 100%; /* Para ocupar a largura e centralizar o conteúdo */
+    padding: 0 10px; /* Para não colar nas bordas do card */
     box-sizing: border-box;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Permite que os botões quebrem linha se não couberem */
 }
 
 .button-action-card {
@@ -469,72 +473,75 @@ h3 {
     border-radius: 8px;
     cursor: pointer;
     font-size: 0.9em;
-    text-decoration: none;
+    text-decoration: none; /* Para links estilizados como botões */
     transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-    display: inline-flex;
+    display: inline-flex; /* Para alinhar ícone e texto */
     align-items: center;
     justify-content: center;
     gap: 5px;
-    min-width: 90px;
+    min-width: 90px; /* Largura mínima para botões pequenos */
     box-sizing: border-box;
-    flex-grow: 1;
+    flex-grow: 1; /* Permite que os botões cresçam para preencher o espaço, se desejado */
     box-shadow: 0 4px 8px var(--shadow-color);
 }
 
 .button-action-card:hover {
-    background-color: #e07b7b;
+    background-color: #e07b7b; /* Um tom mais escuro de --secondary-color no hover */
     transform: translateY(-2px);
     box-shadow: 0 6px 12px var(--hover-shadow);
 }
 
-.button-action-card:active {
+.button-action-card:active { /* Efeito de clique */
     transform: translateY(0);
 }
 
-.button-delete-card {
+.button-delete-card { /* Botão de deletar específico */
     background-color: var(--danger-color);
 }
 
 .button-delete-card:hover {
-    background-color: #c9302c;
+    background-color: #c9302c; /* Tom mais escuro de --danger-color */
 }
 
 .button-action-card .fas,
 .button-action-card .far,
-.button-action-card .fab {
-    margin-right: 5px;
+.button-action-card .fab { /* Estilo para ícones FontAwesome dentro dos botões */
+    margin-right: 5px; /* Espaço entre o ícone e o texto */
 }
 
 /* --- Estilos para a busca de filmes da OMDb API --- */
 .search-group {
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
+    flex-wrap: wrap; /* Para responsividade */
+    align-items: flex-end; /* Alinha itens na base */
     gap: 10px;
     margin-bottom: 20px;
     padding: 15px;
-    background-color: #f8f0f5;
+    background-color: #f8f0f5; /* Rosa bem clarinho para o grupo de busca */
     border-radius: 10px;
     border: 1px solid var(--border-color);
     box-shadow: 0 4px 10px var(--shadow-color);
 }
 
 .search-group label {
-    flex-basis: 100%;
+    flex-basis: 100%; /* Label ocupa toda a largura inicialmente */
     font-weight: 600;
     color: var(--primary-color);
     margin-bottom: 5px;
 }
 
-.search-input {
-    flex: 3;
-    min-width: 150px;
+.search-input { /* Input de texto principal */
+    flex: 3; /* Ocupa mais espaço */
+    min-width: 150px; /* Largura mínima */
 }
 
-.search-input-year {
-    flex: 1;
-    min-width: 80px;
+.search-input-year { /* Input de ano */
+    flex: 1; /* Ocupa menos espaço */
+    min-width: 80px; /* Largura mínima */
 }
+/* Inputs dentro do search-group podem herdar de .form-group input, mas se precisar de override: */
+/* .search-group input[type="text"], .search-group input[type="number"] { ... } */
+
 
 .search-results-container {
     margin-top: 20px;
@@ -543,21 +550,21 @@ h3 {
     border-radius: 10px;
     border: 1px solid var(--border-color);
     box-shadow: 0 4px 10px var(--shadow-color);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
+    display: flex; /* Para alinhar os itens de resultado */
+    flex-wrap: wrap; /* Para quebrar linha */
+    gap: 15px; /* Espaço entre os itens */
+    justify-content: center; /* Centraliza os itens se não preencherem a linha */
 }
 
 .search-result-item {
-    display: flex;
-    align-items: center;
-    background-color: #fffafb;
+    display: flex; /* Para alinhar poster e texto lado a lado */
+    align-items: center; /* Centraliza verticalmente */
+    background-color: #fffafb; /* Um branco levemente rosado */
     border: 1px solid var(--secondary-color);
     border-radius: 8px;
     padding: 10px;
     box-shadow: 0 2px 8px var(--shadow-color);
-    flex-basis: calc(50% - 15px); /* Dois itens por linha, ajustado para gap */
+    flex-basis: calc(50% - 15px); /* Dois itens por linha, considerando o gap. Ajuste conforme necessário. */
     box-sizing: border-box;
     transition: transform 0.2s ease, box-shadow 0.3s ease;
 }
@@ -573,17 +580,17 @@ h3 {
     object-fit: cover;
     border-radius: 5px;
     margin-right: 10px;
-    border: 1px solid var(--border-color);
-    flex-shrink: 0;
+    border: 1px solid var(--border-color); /* Borda sutil no poster */
+    flex-shrink: 0; /* Impede que o poster encolha */
 }
 
-.search-result-item > div {
-    flex-grow: 1;
-    text-align: left;
+.search-result-item > div { /* Container para o texto do resultado */
+    flex-grow: 1; /* Permite que o texto ocupe o espaço restante */
+    text-align: left; /* Alinha o texto à esquerda */
 }
 
 .search-result-item h4 {
-    margin: 0;
+    margin: 0 0 5px 0; /* Ajuste de margem */
     font-size: 1.1em;
     color: var(--primary-color);
 }
@@ -594,28 +601,32 @@ h3 {
     margin: 5px 0;
 }
 
-.select-movie-btn {
+.select-movie-btn { /* Botão para selecionar filme do resultado da busca */
     font-size: 0.85em;
-    padding: 5px 10px !important;
-    margin-top: 5px !important;
-    width: auto !important;
-    align-self: flex-start;
+    padding: 5px 10px !important; /* Usa !important para sobrescrever .button-submit se herdar */
+    margin-top: 5px !important; /* Usa !important */
+    width: auto !important; /* Usa !important */
+    align-self: flex-start; /* Alinha o botão no início do seu container flex (div do texto) */
+    /* Herda de .button-submit, mas pode precisar de ajustes específicos */
+    background-color: var(--info-color); /* Cor diferente para este botão */
+}
+.select-movie-btn:hover {
+    background-color: #1a78c2; /* Tom mais escuro de --info-color */
 }
 
 /* Estilos para o pôster dentro do card do filme */
 /* A classe .movie-poster-container e .movie-poster já estão acima com as correções */
 
-/* --- Stats Page Styles --- */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 25px;
     margin-bottom: 40px;
-    justify-content: center;
+    justify-content: center; /* Centraliza os cards se a última linha não estiver completa */
 }
 
 .stat-card {
-    background-color: #fff8f8;
+    background-color: #fff8f8; /* Branco levemente rosado para os cards de estatísticas */
     padding: 25px;
     border-radius: 15px;
     box-shadow: 0 6px 15px var(--shadow-color);
@@ -624,45 +635,40 @@ h3 {
 }
 
 .stat-card h3 {
-    font-family: 'Quicksand', sans-serif; /* Usar Quicksand para títulos de stats */
+    font-family: 'Quicksand', sans-serif; /* Fonte diferente do H3 padrão */
     color: var(--primary-color);
     font-size: 1.3em;
     margin-bottom: 15px;
+    /* Removido display:flex e gap daqui, pois o h3 do stat-card é simples */
 }
 
-.stat-card h3 i {
+.stat-card h3 i { /* Ícone dentro do h3 do stat-card */
     color: var(--secondary-color);
     margin-right: 8px;
 }
 
 .stat-number {
-    font-family: 'Pacifico', cursive; /* Para os números grandes */
+    font-family: 'Pacifico', cursive;
     font-size: 3em;
     color: var(--primary-color);
-    font-weight: bold;
-    line-height: 1;
+    font-weight: bold; /* Pacifico já é um pouco bold, mas pode reforçar */
+    line-height: 1; /* Para não ocupar muito espaço vertical */
     margin: 10px 0;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
 }
 
-.stats-section {
-    background-color: var(--card-background);
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px var(--shadow-color);
-    border: 1px solid var(--border-color);
-    margin-bottom: 30px;
-}
+/* .stats-section já definido no início junto com .add-movie-section etc. */
+/* .stats-section { ... } */
 
-.stats-section h3 {
-    text-align: left; /* Alinhar à esquerda os títulos de lista */
+.stats-section h3 { /* H3 dentro da seção de estatísticas (não o H3 do stat-card individual) */
+    text-align: left; /* Diferente do H3 padrão */
     margin-bottom: 20px;
+    /* display:flex, gap etc já são do H3 geral, verificar se precisa de override */
 }
 .stats-section h3 i {
     color: var(--secondary-color);
     margin-right: 10px;
 }
-
 
 .stats-list {
     list-style: none;
@@ -671,7 +677,7 @@ h3 {
 }
 
 .stats-list li {
-    background-color: #fce4ec; /* Cor de fundo suave para itens da lista */
+    background-color: var(--background-color); /* Usando o background-color geral da página */
     padding: 10px 15px;
     margin-bottom: 8px;
     border-radius: 8px;
@@ -681,10 +687,47 @@ h3 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Para responsividade interna do item da lista */
 }
 .stats-list li:last-child {
     margin-bottom: 0;
+}
+
+/* ESTILOS CORRIGIDOS E MELHORADOS PARA OS CONTAINERS DE GRÁFICO */
+.chart-container {
+    height: 400px; /* Altura padrão para os gráficos */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+    position: relative; /* Para posicionamento de texto interno */
+    background-color: var(--card-background); /* Garante um fundo, caso o canvas seja transparente */
+    border-radius: 10px; /* Opcional: para corresponder ao estilo do card */
+    /* box-shadow: 0 4px 10px var(--shadow-color); Opcional: se quiser sombra no container do gráfico */
+    padding: 15px; /* Opcional: espaçamento interno */
+    box-sizing: border-box; /* Para o padding não aumentar o tamanho total */
+}
+
+.chart-container canvas {
+    max-height: 100%; /* Garante que o canvas não estoure o container */
+    max-width: 100%;
+}
+
+.chart-container p { /* Estilo para mensagens (ex: "Sem dados") dentro do chart-container */
+    position: absolute;
+    top: 50%; /* Centraliza verticalmente */
+    left: 50%; /* Centraliza horizontalmente */
+    transform: translate(-50%, -50%); /* Ajusta o posicionamento para o centro exato do elemento */
+    color: var(--text-color); /* Usa uma cor definida e visível */
+    font-style: italic;
+    font-size: 0.9em; /* Tamanho da fonte da mensagem */
+    text-align: center; /* Garante que mensagens de múltiplas linhas fiquem centralizadas */
+    padding: 10px; /* Adiciona um respiro em volta do texto */
+    max-width: 90%; /* Evita que o texto comprido quebre o layout */
+    box-sizing: border-box;
+    /* Opcional: adicione um fundo se a mensagem precisar se destacar sobre cores complexas do gráfico */
+    /* background-color: rgba(255, 255, 255, 0.8); */
+    /* border-radius: 5px; */
 }
 
 
@@ -692,24 +735,24 @@ h3 {
 footer {
     text-align: center;
     padding: 20px;
-    margin-top: auto;
+    margin-top: auto; /* Garante que o footer fique no final, mesmo com pouco conteúdo */
     background-color: var(--primary-color);
     color: white;
     font-size: 0.9em;
     box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
-    display: flex;
+    display: flex; /* Para alinhar ícone e texto */
     justify-content: center;
     align-items: center;
     gap: 8px;
-    font-size: 1em;
+    font-size: 1em; /* Aumentado para melhor leitura */
 }
 
 footer p {
     margin: 0;
 }
 
-footer .fas.fa-heart {
-    color: #ffcccc;
+footer .fas.fa-heart { /* Ícone de coração no footer */
+    color: #ffcccc; /* Um rosa bem claro para o coração */
     font-size: 1.2em;
     animation: pulse 1.5s infinite alternate;
 }
@@ -733,7 +776,7 @@ footer .fas.fa-heart {
     h2 {
         font-size: 1.8em;
     }
-    h3 {
+    h3 { /* H3 geral, não o do stat-card */
         font-size: 1.3em;
     }
     .movie-cards-container {
@@ -742,21 +785,19 @@ footer .fas.fa-heart {
     }
     .movie-poster-container {
         height: 320px;
-        max-width: 220px;
+        max-width: 220px; /* Ajustado para manter proporção */
     }
     .search-result-item {
-        flex-basis: calc(100% - 15px);
-        flex-direction: row;
-        text-align: left;
+        flex-basis: calc(100% - 15px); /* Um item por linha em telas médias */
+        /* Ajustes para layout de search-result-item em telas menores, se necessário */
+        /* flex-direction: row; */ /* Já é row por padrão (display:flex) */
+        /* text-align: left; */ /* Já é left por padrão (div > texto) */
     }
-    .search-result-item .result-poster {
-        margin-right: 15px;
-        margin-bottom: 0;
-    }
+    /* .search-result-item .result-poster { ... } */ /* Já definido */
     .stat-card {
         padding: 20px;
     }
-    .stat-card h3 {
+    .stat-card h3 { /* H3 específico do stat-card */
         font-size: 1.2em;
     }
     .stat-number {
@@ -765,60 +806,64 @@ footer .fas.fa-heart {
 }
 
 @media (max-width: 768px) {
-    header .container {
+    header .header-content { /* Aplicado ao .header-content e não ao .container dentro do header */
         flex-direction: column;
         text-align: center;
     }
     header nav {
         margin-top: 10px;
     }
-    .login-container, .add-movie-section, .movie-list-section {
+    .login-container, .add-movie-section, .movie-list-section, .stats-section { /* Incluindo .stats-section */
         padding: 20px 15px;
     }
     .filter-sort-bar, .filter-form {
         flex-direction: column;
-        align-items: stretch;
+        align-items: stretch; /* Para os inputs ocuparem toda a largura */
     }
     .filter-group, .search-group .search-input, .search-group .search-input-year {
-        width: 100%;
-        min-width: unset;
+        width: 100%; /* Ocupa toda a largura */
+        min-width: unset; /* Remove min-width */
     }
-    .button-filter {
+    .button-filter { /* Garante que o botão de filtro também ocupe a largura total */
         width: 100%;
-        margin-top: 10px;
+        margin-top: 10px; /* Espaçamento se estiver abaixo dos inputs */
     }
     .movie-cards-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Uma coluna para cards de filme */
     }
     .movie-card .actions {
-        flex-direction: column;
+        flex-direction: column; /* Botões de ação em coluna */
         gap: 8px;
     }
-    .button-action-card {
+    .button-action-card { /* Botões de ação ocupam largura total */
         width: 100%;
         min-width: unset;
     }
-    .search-group {
+    .search-group { /* Grupo de busca em coluna */
         flex-direction: column;
         align-items: stretch;
     }
-    .search-result-item {
+    .search-result-item { /* Item de resultado de busca em coluna */
         flex-direction: column;
-        text-align: center;
+        text-align: center; /* Centraliza texto e poster */
+        flex-basis: 100%; /* Garante que ocupa uma linha inteira */
     }
     .search-result-item .result-poster {
-        margin-right: 0;
-        margin-bottom: 10px;
+        margin-right: 0; /* Remove margem direita */
+        margin-bottom: 10px; /* Adiciona margem abaixo do poster */
     }
-    .search-result-item > div {
-        text-align: center;
+    .search-result-item > div { /* Div do texto */
+        text-align: center; /* Centraliza o texto */
     }
-    .select-movie-btn {
-        width: 80% !important;
+    .select-movie-btn { /* Botão de selecionar filme */
+        width: 80% !important; /* Ajusta largura e centraliza */
         align-self: center;
     }
     .stats-grid {
         grid-template-columns: 1fr; /* Uma coluna em telas menores para stats */
+    }
+    .chart-container {
+        height: 300px; /* Reduz altura dos gráficos em mobile */
     }
 }
 
@@ -835,26 +880,40 @@ footer .fas.fa-heart {
     h2 {
         font-size: 1.6em;
     }
-    h3 {
-        font-size: 1.3em;
+    h3 { /* H3 geral */
+        font-size: 1.3em; /* Mantido, mas verificar se precisa de mais redução */
     }
-    .form-group input, .form-group textarea, .form-group select {
+    .form-group input[type="text"], /* Aplicado a todos os inputs relevantes */
+    .form-group input[type="number"],
+    .form-group input[type="date"],
+    .form-group input[type="password"],
+    .form-group textarea,
+    .form-group select {
         padding: 10px;
         font-size: 0.9em;
     }
-    .button-submit, .button-filter, .button-logout {
+    .button-submit, .button-filter, .button-logout { /* Estilo unificado para botões principais */
         font-size: 1em;
         padding: 10px 15px;
     }
-    .button-action-card {
+    .button-action-card { /* Botões de ação menores */
         padding: 6px 10px;
         font-size: 0.8em;
     }
     .movie-poster-container {
-        height: 280px;
-        max-width: 180px;
+        height: 280px; /* Altura do poster */
+        max-width: 180px; /* Largura máxima do poster */
     }
     .movie-card p {
         font-size: 0.9em;
+    }
+    .chart-container {
+        height: 250px; /* Mais ajustes para telas muito pequenas */
+    }
+    .stat-number {
+        font-size: 2em; /* Reduzido para telas pequenas */
+    }
+    .select-movie-btn {
+        width: 100% !important; /* Botão de selecionar filme ocupa toda a largura */
     }
 }
